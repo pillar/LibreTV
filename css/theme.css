@@ -1,23 +1,29 @@
 /*
-PlayAny TV · Apple TV 风格主题
-纯黑底，色彩来自海报本身；中性灰毛玻璃材质；白色主按钮；海报卡片带 tvOS 式视差倾斜与高光。
+PlayAny TV · Apple TV 风格主题（浅色）
+白色背景、浅色毛玻璃导航栏、系统蓝强调色、彩色分类标签；
+海报卡片带 tvOS 式视差倾斜与高光；视频播放器保持黑色。
 在 Tailwind 运行时生成的工具类之后加载；选择器统一以 body 为前缀，优先级高于同名工具类。
 */
 
 :root {
-    --bg: #000;
-    --surface: #1c1c1e;
-    --surface-2: #2c2c2e;
-    --fill: rgba(118, 118, 128, 0.24);
-    --fill-hover: rgba(118, 118, 128, 0.36);
-    --material: rgba(30, 30, 32, 0.78);
+    --bg: #fff;
+    --grouped: #f2f2f7;
+    --surface: #fff;
+    --surface-2: #f2f2f7;
+    --fill: rgba(118, 118, 128, 0.12);
+    --fill-hover: rgba(118, 118, 128, 0.2);
+    --material: rgba(255, 255, 255, 0.78);
     --material-blur: blur(30px) saturate(180%);
-    --separator: rgba(84, 84, 88, 0.5);
-    --ink: #fff;
-    --ink-2: rgba(235, 235, 245, 0.6);
-    --ink-3: rgba(235, 235, 245, 0.3);
-    --link: #0a84ff;
-    --green: #30d158;
+    --separator: rgba(60, 60, 67, 0.18);
+    --ink: #000;
+    --ink-2: rgba(60, 60, 67, 0.68);
+    --ink-3: rgba(60, 60, 67, 0.4);
+    --blue: #007aff;
+    --blue-hover: #0a6ee0;
+    --green: #34c759;
+    --red: #ff3b30;
+    --shadow-card: 0 6px 18px -8px rgba(0, 0, 0, 0.25);
+    --shadow-lift: 0 26px 46px -16px rgba(0, 0, 0, 0.35);
 
     --radius-lg: 16px;
     --radius-md: 12px;
@@ -28,10 +34,10 @@ PlayAny TV · Apple TV 风格主题
     --spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 
     /* 兼容旧样式表中的变量 */
-    --primary-color: var(--ink);
-    --primary-light: var(--ink);
+    --primary-color: var(--blue);
+    --primary-light: var(--blue);
     --secondary-color: var(--bg);
-    --accent-color: var(--ink);
+    --accent-color: var(--blue);
     --text-color: var(--ink);
     --text-muted: var(--ink-2);
     --border-color: var(--separator);
@@ -41,7 +47,7 @@ PlayAny TV · Apple TV 风格主题
     --card-gradient-end: var(--surface);
     --card-accent: transparent;
     --card-hover-border: transparent;
-    color-scheme: dark;
+    color-scheme: light;
 }
 
 html {
@@ -49,7 +55,8 @@ html {
 }
 
 body,
-body.page-bg {
+body.page-bg,
+body.player-page {
     background: var(--bg);
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
@@ -58,7 +65,19 @@ body.page-bg {
 }
 
 ::selection {
-    background: rgba(10, 132, 255, 0.5);
+    background: rgba(0, 122, 255, 0.25);
+}
+
+* {
+    scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
 }
 
 @keyframes fade-up {
@@ -76,6 +95,34 @@ body.page-bg {
     to { opacity: 1; transform: none; }
 }
 
+/* ---------- 文字颜色：原页面按深色界面写死的白/灰文字改为浅色界面的系统文字色 ---------- */
+body.text-white,
+body .text-white,
+body .text-gray-200,
+body .hover\:text-white:hover {
+    color: var(--ink);
+}
+
+body .text-gray-300 { color: rgba(60, 60, 67, 0.85); }
+body .text-gray-400 { color: var(--ink-2); }
+body .text-gray-500 { color: var(--ink-3); }
+body .text-red-400,
+body .text-red-500 { color: var(--red); }
+
+/* 深色或彩色底上的文字保持白色 */
+body .bg-black\/70,
+body .bg-black\/70 .text-white,
+body .bg-pink-600,
+body .bg-blue-600,
+body .bg-red-500,
+body .bg-green-500,
+body #toast,
+body #toast p,
+body #playerContainer .text-white,
+body #player {
+    color: #fff;
+}
+
 /* ---------- 顶部导航栏 ---------- */
 .tv-nav {
     position: sticky;
@@ -86,10 +133,10 @@ body.page-bg {
     justify-content: space-between;
     height: calc(56px + env(safe-area-inset-top));
     padding: env(safe-area-inset-top) max(1rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left));
-    background: rgba(0, 0, 0, 0.72);
+    background: var(--material);
     -webkit-backdrop-filter: var(--material-blur);
     backdrop-filter: var(--material-blur);
-    border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 0.5px solid var(--separator);
 }
 
 .tv-brand {
@@ -99,6 +146,7 @@ body.page-bg {
     font-size: 1.1rem;
     font-weight: 600;
     letter-spacing: -0.01em;
+    color: var(--ink);
     transition: opacity 0.2s var(--ease);
 }
 
@@ -109,7 +157,7 @@ body.page-bg {
 }
 
 .tv-brand:hover {
-    opacity: 0.8;
+    opacity: 0.75;
 }
 
 .tv-nav-actions {
@@ -124,13 +172,12 @@ body.page-bg {
     width: 2.25rem;
     height: 2.25rem;
     border-radius: 999px;
-    color: var(--ink-2);
+    color: var(--blue);
     background: transparent;
-    transition: background-color 0.2s var(--ease), color 0.2s var(--ease), transform 0.3s var(--spring);
+    transition: background-color 0.2s var(--ease), transform 0.3s var(--spring);
 }
 
 .tv-icon-btn:hover {
-    color: var(--ink);
     background: var(--fill);
 }
 
@@ -151,6 +198,7 @@ body.page-bg {
     font-weight: 700;
     letter-spacing: -0.025em;
     line-height: 1.1;
+    color: var(--ink);
 }
 
 .tv-subtitle {
@@ -171,13 +219,13 @@ body.page-bg {
 }
 
 .search-shell:focus-within {
-    background: var(--fill-hover);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.35), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .search-icon {
     display: inline-flex;
-    color: var(--ink-2);
+    color: var(--ink-3);
 }
 
 .search-icon svg {
@@ -204,20 +252,20 @@ body .search-shell #clearSearchInput {
 }
 
 body .search-shell #clearSearchInput:hover {
-    color: var(--ink);
+    color: var(--ink-2);
 }
 
 body .search-shell > button.search-go {
     height: 100%;
     border-radius: calc(var(--radius-md) - 4px);
-    background: var(--ink);
-    color: #000;
+    background: var(--blue);
+    color: #fff;
     font-weight: 600;
     transition: background-color 0.2s var(--ease), transform 0.3s var(--spring);
 }
 
 body .search-shell > button.search-go:hover {
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--blue-hover);
 }
 
 body .search-shell > button.search-go:active {
@@ -255,7 +303,7 @@ body .gradient-text {
     color: var(--ink);
 }
 
-/* 原有灰阶工具类映射为系统灰 */
+/* 原有深色背景工具类映射为浅色 */
 body .bg-\[\#111\],
 body .bg-\[\#151515\],
 body .bg-\[\#0a0a0a\] {
@@ -281,7 +329,8 @@ body .hover\:bg-\[\#222\]:hover,
 body .hover\:bg-\[\#333\]:hover,
 body .hover\:bg-\[\#444\]:hover,
 body .hover\:bg-\[\#555\]:hover,
-body .hover\:bg-gray-600:hover {
+body .hover\:bg-gray-600:hover,
+body .hover\:bg-gray-800:hover {
     background-color: var(--fill-hover);
 }
 
@@ -289,7 +338,8 @@ body .border-\[\#222\],
 body .border-\[\#333\],
 body .border-\[\#444\],
 body .border-gray-700,
-body .border-gray-800 {
+body .border-gray-800,
+body .border-white {
     border-color: var(--separator);
 }
 
@@ -301,16 +351,12 @@ body .rounded-lg {
     border-radius: var(--radius-md);
 }
 
-body .text-gray-300 { color: rgba(235, 235, 245, 0.8); }
-body .text-gray-400 { color: var(--ink-2); }
-body .text-gray-500 { color: var(--ink-3); }
-
-/* 主按钮：白底黑字 */
+/* 强调按钮：系统蓝 */
 body .bg-pink-600,
 body .bg-blue-600,
 body .bg-gradient-to-r.from-indigo-500 {
-    background: var(--ink);
-    color: #000;
+    background: var(--blue);
+    color: #fff;
     border: 0;
     border-radius: 999px;
     box-shadow: none;
@@ -321,37 +367,44 @@ body .bg-pink-600:hover,
 body .hover\:bg-pink-700:hover,
 body .hover\:bg-blue-700:hover,
 body .bg-gradient-to-r.from-indigo-500:hover {
-    background: rgba(255, 255, 255, 0.85);
-    color: #000;
+    background: var(--blue-hover);
+    color: #fff;
     box-shadow: none;
 }
 
 body .text-pink-400,
 body .hover\:text-pink-400:hover,
-body .text-pink-500 { color: var(--ink); }
+body .text-pink-500,
 body .text-blue-400,
-body .text-blue-500 { color: var(--link); }
-body .border-pink-500 { border-color: var(--ink); }
+body .text-blue-500 { color: var(--blue); }
+body .border-pink-500 { border-color: var(--blue); }
 
-/* ---------- 侧边面板 ---------- */
+/* ---------- 侧边面板：iOS 设置的分组样式 ---------- */
 body .settings-panel,
 body .history-panel {
     border: 0;
-    background: var(--material);
+    background: rgba(242, 242, 247, 0.92);
     -webkit-backdrop-filter: var(--material-blur);
     backdrop-filter: var(--material-blur);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
-    transition: transform 0.35s var(--ease-out) !important;
+    box-shadow: none;
+    color: var(--ink);
+    transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out) !important;
     padding-top: calc(1.5rem + env(safe-area-inset-top));
     padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
 }
 
+/* 面板收起时在屏幕外，阴影只在展开时显示，否则会在屏幕边缘漏出一圈灰影 */
+body .settings-panel.show,
+body .history-panel.show {
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.18);
+}
+
 body .history-panel .sticky {
-    background: linear-gradient(to top, rgba(30, 30, 32, 0.98) 60%, transparent);
+    background: linear-gradient(to top, rgba(242, 242, 247, 0.98) 60%, transparent);
 }
 
 body .settings-panel > .space-y-5 > div {
-    background: var(--surface-2);
+    background: var(--surface);
     border: 0;
     border-radius: var(--radius-md);
     box-shadow: none;
@@ -368,11 +421,16 @@ body #customApisList button {
     padding-right: 0.7rem;
 }
 
+body .settings-panel .bg-\[\#333\].text-white {
+    color: var(--blue);
+}
+
 body .close-btn {
     top: calc(12px + env(safe-area-inset-top));
     background: var(--fill);
     border: 0;
     border-radius: 999px;
+    color: var(--ink-2);
 }
 
 body .close-btn:hover {
@@ -380,32 +438,35 @@ body .close-btn:hover {
 }
 
 body .history-item {
-    background: var(--surface-2);
+    background: var(--surface);
     border: 0;
     border-radius: var(--radius-md);
     transition: background-color 0.2s var(--ease);
 }
 
 body .history-item:hover {
-    background: #3a3a3c;
+    background: #fafafa;
     transform: none;
-    box-shadow: none;
+    box-shadow: var(--shadow-card);
 }
 
-body .history-episode { color: var(--ink); }
+body .history-meta { color: var(--ink-2); }
+body .history-episode { color: var(--blue); }
 body .history-source { color: var(--ink-2); }
+body .history-time,
+body .progress-text { color: var(--ink-3); }
 
 body .progress-bar {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--fill);
 }
 
 body .progress-filled {
-    background: var(--ink);
+    background: var(--blue);
 }
 
 /* 开关：iOS 系统开关 */
 body .toggle-bg {
-    background-color: rgba(120, 120, 128, 0.32);
+    background-color: rgba(120, 120, 128, 0.16);
     border: 0;
 }
 
@@ -418,6 +479,7 @@ body #doubanToggle:checked + .toggle-bg {
 }
 
 body .toggle-dot {
+    background: #fff;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
 }
 
@@ -426,14 +488,14 @@ body input:checked ~ .toggle-dot {
 }
 
 body .form-checkbox {
-    background-color: transparent;
+    background-color: #fff;
     border: 1.5px solid var(--ink-3);
     border-radius: 999px;
 }
 
 body .form-checkbox:checked {
-    background: var(--link);
-    border-color: var(--link);
+    background: var(--blue);
+    border-color: var(--blue);
 }
 
 body .api-group-title {
@@ -443,18 +505,21 @@ body .api-group-title {
 
 body input[type="text"],
 body input[type="password"] {
-    caret-color: var(--link);
+    caret-color: var(--blue);
 }
 
 body input[type="text"]:not(#searchInput),
 body input[type="password"] {
+    background: var(--surface-2);
+    color: var(--ink);
+    border-color: transparent;
     border-radius: var(--radius-sm);
 }
 
 body input[type="text"]:not(#searchInput):focus,
 body input[type="password"]:focus {
-    border-color: rgba(255, 255, 255, 0.6);
-    box-shadow: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
     outline: none;
 }
 
@@ -465,7 +530,6 @@ body .card-hover,
 body .douban-card {
     position: relative;
     border: 0;
-    box-shadow: none;
     transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
     transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out), background-color 0.2s var(--ease);
     animation: fade-up 0.5s var(--ease-out) backwards;
@@ -482,7 +546,7 @@ body .douban-card > div:first-child::after {
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, 0.22), transparent 55%);
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, 0.35), transparent 55%);
     opacity: 0;
     transition: opacity 0.3s var(--ease);
     pointer-events: none;
@@ -497,12 +561,13 @@ body .douban-card:hover > div:first-child::after {
 body .card-hover {
     background: var(--surface);
     border-radius: var(--radius-lg);
+    box-shadow: 0 0 0 0.5px var(--separator), var(--shadow-card);
 }
 
 body .card-hover:hover {
-    background: var(--surface-2);
+    background: var(--surface);
     transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(1.03);
-    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.9);
+    box-shadow: 0 0 0 0.5px var(--separator), var(--shadow-lift);
     border-color: transparent;
 }
 
@@ -510,10 +575,16 @@ body .search-card-img-container {
     background: var(--surface-2);
 }
 
-body .card-hover .bg-blue-500.bg-opacity-20,
+body .card-hover .bg-blue-500.bg-opacity-20 {
+    background: rgba(0, 122, 255, 0.12);
+    color: var(--blue);
+    border-radius: 4px;
+    padding: 0.05rem 0.4rem;
+}
+
 body .card-hover .bg-purple-500.bg-opacity-20 {
-    background: var(--fill);
-    color: var(--ink-2);
+    background: rgba(175, 82, 222, 0.12);
+    color: #af52de;
     border-radius: 4px;
     padding: 0.05rem 0.4rem;
 }
@@ -526,13 +597,15 @@ body .card-hover .border-t {
 body .douban-card {
     background: transparent;
     border-radius: var(--radius-md);
+    box-shadow: none;
     overflow: visible;
 }
 
 body .douban-card > div:first-child {
     border-radius: var(--radius-md);
     overflow: hidden;
-    box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.8);
+    background: var(--surface-2);
+    box-shadow: var(--shadow-card);
     transition: box-shadow 0.35s var(--ease-out);
 }
 
@@ -543,7 +616,7 @@ body .douban-card:hover {
 }
 
 body .douban-card:hover > div:first-child {
-    box-shadow: 0 30px 50px -14px rgba(0, 0, 0, 0.95);
+    box-shadow: var(--shadow-lift);
 }
 
 body .douban-card img:hover {
@@ -551,7 +624,7 @@ body .douban-card img:hover {
 }
 
 body .douban-card .bg-gradient-to-t {
-    opacity: 0.35;
+    opacity: 0.3;
 }
 
 body .douban-card .bg-\[\#111\] {
@@ -561,17 +634,17 @@ body .douban-card .bg-\[\#111\] {
 }
 
 body .douban-card .bg-\[\#111\] button {
-    color: var(--ink-2);
+    color: var(--ink);
     font-weight: 500;
     text-align: left;
 }
 
 body .douban-card:hover .bg-\[\#111\] button {
-    color: var(--ink);
+    color: var(--blue);
 }
 
 body .douban-card .bg-black\/70 {
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(0, 0, 0, 0.5);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-radius: 6px;
@@ -591,32 +664,63 @@ body #doubanArea h2 {
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: -0.02em;
+    color: var(--ink);
 }
 
-/* 分段控件 */
+/* 分段控件：iOS 浅色分段控件 */
 body #doubanArea .bg-\[\#222\].rounded-full {
-    background: var(--fill);
+    background: rgba(118, 118, 128, 0.12);
     padding: 2px;
 }
 
 body #douban-movie-toggle,
 body #douban-tv-toggle {
     border-radius: 999px;
-    color: var(--ink-2);
-    transition: background-color 0.25s var(--ease), color 0.25s var(--ease);
+    color: var(--ink);
+    transition: background-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
 }
 
 body #douban-movie-toggle.bg-pink-600,
 body #douban-tv-toggle.bg-pink-600 {
-    background: #636366;
+    background: #fff;
     color: var(--ink);
     font-weight: 600;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
 }
 
-/* 标签：选中为白底 */
+/* 分类标签：像 Apple TV 按类型浏览的彩色卡片，循环使用 7 种系统色；选中为蓝色实心 */
 body #douban-tags button {
     border: 0;
     border-radius: 999px;
+    font-weight: 500;
+    box-shadow: none;
+}
+
+body #douban-tags button:first-child {
+    background: var(--fill);
+    color: var(--ink-2);
+}
+
+body #douban-tags button:not(:first-child):not(.bg-pink-600) {
+    background: rgba(var(--tag, 0, 122, 255), 0.12);
+    color: rgb(var(--tag, 0, 122, 255));
+}
+
+body #douban-tags button:not(:first-child):not(.bg-pink-600):hover {
+    background: rgba(var(--tag, 0, 122, 255), 0.2);
+}
+
+body #douban-tags button:nth-child(7n+2) { --tag: 0, 122, 255; }
+body #douban-tags button:nth-child(7n+3) { --tag: 175, 82, 222; }
+body #douban-tags button:nth-child(7n+4) { --tag: 255, 45, 85; }
+body #douban-tags button:nth-child(7n+5) { --tag: 230, 120, 0; }
+body #douban-tags button:nth-child(7n+6) { --tag: 36, 160, 70; }
+body #douban-tags button:nth-child(7n+7) { --tag: 0, 150, 170; }
+body #douban-tags button:nth-child(7n+8) { --tag: 88, 86, 214; }
+
+body #douban-tags button.bg-pink-600 {
+    background: var(--blue);
+    color: #fff;
 }
 
 /* ---------- 弹窗 ---------- */
@@ -624,10 +728,11 @@ body #modal,
 body #passwordModal,
 body #disclaimerModal,
 body #loading,
-body #importUrlModal {
-    background: rgba(0, 0, 0, 0.6);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
+body #importUrlModal,
+body #tagManageModal {
+    background: rgba(0, 0, 0, 0.3);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
     animation: fade-in 0.25s var(--ease) backwards;
 }
 
@@ -635,15 +740,17 @@ body #modal > div,
 body #passwordModal > div,
 body #disclaimerModal > div,
 body #loading > div,
-body #importUrlModal > div {
+body #importUrlModal > div,
+body #tagManageModal > div {
     background: var(--surface);
+    color: var(--ink);
     border: 0;
     border-radius: 20px;
-    box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.9);
+    box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.35);
     animation: sheet-in 0.35s var(--ease-out) backwards;
 }
 
-body #disclaimerModal .text-blue-400 { color: var(--ink); }
+body #disclaimerModal .text-blue-400 { color: var(--blue); }
 
 body #modal .modal-detail-info {
     background: var(--surface-2);
@@ -656,10 +763,13 @@ body #modal .detail-desc {
 }
 
 body #modal .detail-label { color: var(--ink-3); }
+body #modal .detail-value,
+body #modal .detail-desc-content { color: var(--ink); }
 
 body #episodesGrid button,
 body #modalContent button {
     background: var(--fill);
+    color: var(--ink);
     border: 0;
     border-radius: var(--radius-sm);
 }
@@ -670,33 +780,42 @@ body #modalContent button:hover {
     box-shadow: none;
 }
 
+body #modalContent button.bg-blue-600 {
+    background: var(--blue);
+    color: #fff;
+}
+
 body .episode-active,
 body #episodesGrid button.episode-active {
-    background: var(--ink) !important;
-    color: #000 !important;
+    background: var(--blue) !important;
+    color: #fff !important;
     font-weight: 600;
     box-shadow: none !important;
 }
 
 body #loading .animate-spin {
-    border-color: rgba(255, 255, 255, 0.85);
+    border-color: var(--blue);
     border-top-color: transparent;
+}
+
+body #loading p {
+    color: var(--ink);
 }
 
 body #toast {
     border-radius: 999px;
-    box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.35);
 }
 
 /* ---------- 页脚 ---------- */
 body .footer {
-    background: transparent;
+    background: var(--grouped);
     border-top: 0.5px solid var(--separator);
 }
 
-body .footer .text-blue-400 { color: var(--link); }
+body .footer .text-blue-400 { color: var(--blue); }
 
-/* ---------- 播放页 ---------- */
+/* ---------- 播放页：页面浅色，播放器保持黑色 ---------- */
 body .player-header-fixed {
     top: 0;
     left: 0;
@@ -705,12 +824,13 @@ body .player-header-fixed {
     height: calc(56px + env(safe-area-inset-top));
     padding: env(safe-area-inset-top) max(1rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left));
     border: 0;
-    border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 0.5px solid var(--separator);
     border-radius: 0;
-    background: rgba(0, 0, 0, 0.72);
+    background: var(--material);
     -webkit-backdrop-filter: var(--material-blur);
     backdrop-filter: var(--material-blur);
     box-shadow: none;
+    color: var(--ink);
 }
 
 body .player-header-fixed .logo-icon {
@@ -728,7 +848,12 @@ body .player-header-fixed #goBack {
     border: 0;
     border-radius: 999px;
     background: var(--fill);
+    color: var(--blue);
     padding: 0.4rem 0.9rem;
+}
+
+body .player-header-fixed #goBack svg {
+    fill: currentColor;
 }
 
 body .player-header-fixed #goBack:hover {
@@ -742,7 +867,7 @@ body.player-page {
 body #playerContainer .relative {
     border-radius: var(--radius-lg);
     overflow: hidden;
-    box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 1);
+    box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.45);
     animation: fade-in 0.4s var(--ease) backwards;
 }
 
@@ -754,25 +879,38 @@ body .player-placeholder {
 }
 
 body #resourceInfoBarContainer {
-    background: var(--surface);
+    background: var(--surface-2);
+    color: var(--ink);
     border: 0;
     border-radius: var(--radius-md);
 }
 
+body #resourceInfoBarContainer {
+    box-shadow: none;
+}
+
+body #resourceInfoBarContainer .resource-info-bar-left {
+    color: var(--ink);
+}
+
+body #resourceInfoBarContainer .resource-info-bar-videos {
+    color: var(--ink-2);
+}
+
 body #resourceInfoBarContainer .resource-switch-btn,
 body #resourceInfoBarContainer .resource-switch-icon {
-    color: var(--ink);
+    color: var(--blue);
 }
 
 body #resourceInfoBarContainer .resource-switch-btn {
     border-radius: 999px;
-    background: var(--fill);
+    background: rgba(0, 122, 255, 0.1);
     padding: 0.35rem 0.9rem;
 }
 
 body #resourceInfoBarContainer .resource-switch-btn:hover,
 body #resourceInfoBarContainer .resource-switch-btn:active {
-    background: var(--fill-hover);
+    background: rgba(0, 122, 255, 0.18);
 }
 
 body #resourceInfoBarContainer .resource-switch-btn path {
@@ -780,7 +918,7 @@ body #resourceInfoBarContainer .resource-switch-btn path {
 }
 
 body .slider {
-    background-color: rgba(120, 120, 128, 0.32);
+    background-color: rgba(120, 120, 128, 0.16);
 }
 
 body .switch input:checked + .slider {

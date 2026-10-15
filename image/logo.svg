@@ -1,14 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#3a3a3c"/>
-      <stop offset="1" stop-color="#0b0b0c"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#7fdcff"/>
+      <stop offset="0.55" stop-color="#38b6ff"/>
+      <stop offset="1" stop-color="#0a84ff"/>
     </linearGradient>
-    <linearGradient id="glyph" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#d9d9de"/>
-    </linearGradient>
+    <radialGradient id="sheen" cx="0.3" cy="0.05" r="0.75">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="22"/>
+      <feOffset dy="18"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.22"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
   <rect width="1024" height="1024" fill="url(#bg)"/>
-  <path d="M410 300c-29-17-66 4-66 38v348c0 34 37 55 66 38l301-174c29-17 29-59 0-76z" fill="url(#glyph)"/>
+  <rect width="1024" height="1024" fill="url(#sheen)"/>
+  <path filter="url(#shadow)" d="M410 300c-29-17-66 4-66 38v348c0 34 37 55 66 38l301-174c29-17 29-59 0-76z" fill="#fff"/>
 </svg>

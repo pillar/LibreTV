@@ -2,7 +2,7 @@
   "appId": "app.playany.tv",
   "appName": "PlayAny TV",
   "webDir": "www",
-  "backgroundColor": "#000000",
+  "backgroundColor": "#ffffff",
   "server": {
     "cleartext": true
   },
@@ -17,7 +17,7 @@
     "SystemBars": {
       "insetsHandling": "css",
       "initialViewportFitValueHint": "cover",
-      "style": "DARK"
+      "style": "LIGHT"
     }
   }
 }

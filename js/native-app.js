@@ -8,8 +8,8 @@
 
     const plugins = cap.Plugins || {};
     if (plugins.SystemBars) {
-        // 深色背景配浅色状态栏文字
-        plugins.SystemBars.setStyle({ style: 'DARK' }).catch(() => {});
+        // 浅色背景配深色状态栏文字
+        plugins.SystemBars.setStyle({ style: 'LIGHT' }).catch(() => {});
     }
 
     const nativeHttp = plugins.CapacitorHttp;

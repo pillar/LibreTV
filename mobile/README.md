@@ -10,6 +10,8 @@
 | 豆瓣海报回退 | 经 `/proxy/` | 原生请求并带豆瓣 Referer，转成 data URL |
 | 视频播放 | 浏览器直连 m3u8 | WebView 直连 m3u8，同样依赖视频 CDN 的 CORS 设置 |
 | 密码保护 | 服务端注入 `PASSWORD` | **不支持**（没有服务端注入，`{{PASSWORD}}` 占位符不会被替换，相当于未设置密码） |
+| 离线缓存 | 不支持 | 播放页「缓存」→ 本集 / 全部剧集；首页导航栏「我的下载」管理。分片与密钥下载到 App 的 Library 目录，断网可播；前台下载，切到后台暂停、回到前台继续（`js/downloads.js`） |
+| 全屏 | 浏览器全屏 | 网页内全屏 + 横屏 + 隐藏状态栏/Home 条；播放器锁定时 iOS 推迟系统边缘手势，Android 屏蔽返回键 |
 | HTTP 明文源 | 取决于部署站点 | 已允许（iOS `NSAllowsArbitraryLoads`，Android `cleartext` + `allowMixedContent`），因为不少数据源和 m3u8 只有 http |
 
 ## 环境要求

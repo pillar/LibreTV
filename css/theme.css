@@ -1017,6 +1017,182 @@ body #lockToggle.is-locked {
     color: #fff;
 }
 
+/* ---------- 离线缓存（js/downloads-ui.js，仅 App） ---------- */
+.downloads-panel {
+    position: fixed;
+    z-index: 45;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(100vw, 24rem);
+    display: flex;
+    flex-direction: column;
+    padding: calc(1rem + env(safe-area-inset-top)) 1rem calc(1rem + env(safe-area-inset-bottom));
+    background: rgba(242, 242, 247, 0.96);
+    -webkit-backdrop-filter: var(--material-blur);
+    backdrop-filter: var(--material-blur);
+    color: var(--ink);
+    transform: translateX(100%);
+    transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out);
+}
+
+.downloads-panel.show {
+    transform: none;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.18);
+}
+
+.downloads-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.downloads-header h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.downloads-close {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    background: var(--fill);
+    color: var(--ink-2);
+}
+
+.downloads-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.downloads-empty {
+    margin-top: 3rem;
+    text-align: center;
+    color: var(--ink-3);
+    line-height: 1.8;
+}
+
+.downloads-group {
+    margin-bottom: 1rem;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.downloads-group h4 {
+    padding: 0.75rem 1rem 0.25rem;
+    font-weight: 600;
+}
+
+.downloads-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border-top: 0.5px solid var(--separator);
+}
+
+.downloads-group h4 + .downloads-item {
+    border-top: 0;
+}
+
+.downloads-item-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.downloads-item-title {
+    font-size: 0.95rem;
+}
+
+.downloads-item-status {
+    font-size: 0.8rem;
+    color: var(--ink-2);
+}
+
+.downloads-item-status.is-error {
+    color: var(--red);
+}
+
+.downloads-progress {
+    height: 3px;
+    margin-top: 0.35rem;
+    border-radius: 2px;
+    background: var(--fill);
+    overflow: hidden;
+}
+
+.downloads-progress span {
+    display: block;
+    height: 100%;
+    background: var(--blue);
+    transition: width 0.3s var(--ease);
+}
+
+.downloads-item button {
+    flex-shrink: 0;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: var(--fill);
+    color: var(--blue);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.downloads-item .downloads-primary {
+    background: var(--blue);
+    color: #fff;
+}
+
+.downloads-item .downloads-remove {
+    color: var(--red);
+}
+
+.downloads-footer {
+    padding-top: 0.75rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--ink-3);
+}
+
+.download-cache-btn svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.download-menu {
+    position: absolute;
+    z-index: 40;
+    right: 0;
+    top: calc(100% + 0.4rem);
+    display: none;
+    flex-direction: column;
+    min-width: 9rem;
+    padding: 0.3rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.96);
+    -webkit-backdrop-filter: var(--material-blur);
+    backdrop-filter: var(--material-blur);
+    box-shadow: 0 0 0 0.5px var(--separator), 0 16px 40px -12px rgba(0, 0, 0, 0.3);
+}
+
+.download-menu.show {
+    display: flex;
+    animation: sheet-in 0.2s var(--ease-out) backwards;
+}
+
+.download-menu button {
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-sm);
+    text-align: left;
+    color: var(--ink);
+}
+
+.download-menu button:hover {
+    background: var(--fill);
+}
+
 /* ---------- App 网络不可用提示（js/native-app.js） ---------- */
 .network-hint {
     position: fixed;

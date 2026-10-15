@@ -61,6 +61,15 @@ npm run dev
 
 > 使用 `python -m http.server` 这类纯静态服务器时没有代理功能，搜索无法使用，请使用 Node.js 开发服务器。
 
+端到端测试（自动启动带测试密码的 `server.mjs`，数据源接口使用模拟数据）：
+
+```bash
+npx playwright install chromium   # 首次运行前安装浏览器（本地默认使用已安装的 Chrome）
+npm test
+```
+
+推送到 GitHub 后，`.github/workflows/test.yml` 会自动运行语法检查、Tailwind 产物检查与全部测试。
+
 样式使用预编译的 Tailwind：修改了页面或脚本中的 Tailwind 类名后，运行 `npm run build:css` 重新生成 `css/tailwind.css` 并一起提交（部署时不会自动构建）。
 
 ## 📱 iOS / Android 客户端

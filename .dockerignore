@@ -10,3 +10,7 @@ docker-compose*.yml
 mobile/
 tailwind.config.js
 css/tailwind.src.css
+tests/
+playwright.config.js
+playwright-report/
+test-results/

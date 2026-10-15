@@ -23,3 +23,7 @@ coverage
 *.sln
 *.sw?
 .env
+
+# 端到端测试产物
+playwright-report/
+test-results/

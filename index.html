@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#07070c">
+    <meta name="theme-color" content="#000000">
     <title>PlayAny TV - 免费在线视频搜索与观看平台</title>
     <meta name="description" content="PlayAny TV 是一个免费的在线视频搜索平台，无广告、安全，提供来自多个视频源的内容搜索与观看服务，无需注册即可使用。">
     <meta name="keywords" content="在线视频,免费视频,视频搜索,电影,电视剧,PlayAny TV">
@@ -19,30 +19,26 @@
     <link rel="stylesheet" href="css/theme.css">
 </head>
 <body class="page-bg text-white">
-    <div class="ambient" aria-hidden="true">
-        <span class="ambient-blob ambient-a"></span>
-        <span class="ambient-blob ambient-b"></span>
-        <span class="ambient-blob ambient-c"></span>
-        <span class="ambient-grain"></span>
-    </div>
-    <!-- 将历史记录按钮移到左上角，并缩小尺寸 -->
-    <div class="fixed top-4 left-4 z-10 safe-top">
-        <button onclick="toggleHistory(event)" class="orb-btn" aria-label="观看历史">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-        </button>
-    </div>
-
-    <!-- 设置按钮保留在右上角，并缩小尺寸 -->
-    <div class="fixed top-4 right-4 z-10 safe-top">
-        <button onclick="toggleSettings(event)" class="orb-btn" aria-label="打开设置">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <!-- 顶部导航栏 -->
+    <nav class="tv-nav">
+        <a href="#" onclick="resetToHome(); return false;" class="tv-brand" aria-label="PlayAny TV 首页">
+            <img src="image/logo.png" alt="" width="30" height="30">
+            <span>PlayAny TV</span>
+        </a>
+        <div class="tv-nav-actions">
+            <button onclick="toggleHistory(event)" class="tv-icon-btn" aria-label="观看历史" title="观看历史">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </button>
+            <button onclick="toggleSettings(event)" class="tv-icon-btn" aria-label="打开设置" title="设置">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
             </svg>
-        </button>
-    </div>
+            </button>
+        </div>
+    </nav>
     
     <!-- 历史记录面板 - 标题居中 -->
     <div id="historyPanel" class="history-panel fixed left-0 top-0 h-full bg-[#111] border-r border-[#333] p-6 z-40 transform -translate-x-full transition-transform duration-300" aria-label="观看历史" aria-hidden="true">
@@ -189,27 +185,19 @@
 
     <div class="container mx-auto px-4 py-8 flex flex-col h-screen">
         <div class="flex-1 flex flex-col">
-            <!-- 网站标志和口号 -->
-            <header class="text-center mb-2">
-                <div class="flex justify-center items-center mb-4">
-                    <a href="#" onclick="resetToHome(); return false;" class="brand">
-                        <img src="image/logo.png" alt="" class="brand-icon" width="64" height="64">
-                        <h1 class="brand-title">PlayAny TV</h1>
-                    </a>
-                </div>
-                <p class="brand-tagline mb-8">想看就看 · 随处可播</p>
+            <!-- 页面标题 -->
+            <header class="tv-hero">
+                <h1 class="tv-title">想看什么？</h1>
+                <p class="tv-subtitle">搜索电影、剧集、综艺与动漫</p>
             </header>
             
 
             <div id="searchArea" class="flex-1 flex flex-col items-center justify-center">
                 <div class="w-full max-w-2xl">
                     <div class="search-shell flex items-stretch mb-3 h-14">
-                        <!-- 首页按钮 -->
-                        <button onclick="resetToHome()" 
-                                class="w-20 sm:w-24 flex items-center justify-center bg-white text-black font-medium hover:bg-gray-200 transition-colors" 
-                                aria-label="返回首页" title="返回首页">
-                            首页
-                        </button>
+                        <span class="search-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+                        </span>
                         <!-- 搜索输入 -->
                         <input type="text" 
                                id="searchInput" 
@@ -398,7 +386,7 @@
     </script>
     <script src="js/config.js"></script>
     <script src="js/native-app.js"></script>
-    <script src="js/liquid-glass.js"></script>
+    <script src="js/tv-focus.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
     <script src="js/douban.js"></script>

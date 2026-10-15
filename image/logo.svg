@@ -1,41 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#1b2a6b"/>
-      <stop offset="0.55" stop-color="#3b2a8f"/>
-      <stop offset="1" stop-color="#7a2d7f"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a3a3c"/>
+      <stop offset="1" stop-color="#0b0b0c"/>
     </linearGradient>
-    <radialGradient id="glowA" cx="0.22" cy="0.18" r="0.7">
-      <stop offset="0" stop-color="#4fb3ff" stop-opacity="0.9"/>
-      <stop offset="1" stop-color="#4fb3ff" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="glowB" cx="0.85" cy="0.9" r="0.6">
-      <stop offset="0" stop-color="#ff6aa8" stop-opacity="0.75"/>
-      <stop offset="1" stop-color="#ff6aa8" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="glass" x1="0" y1="0" x2="0.6" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.62"/>
-      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.24"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0.12"/>
+    <linearGradient id="glyph" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d9d9de"/>
     </linearGradient>
-    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
-      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.15"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0.55"/>
-    </linearGradient>
-    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="28"/>
-      <feOffset dy="24"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.35"/></feComponentTransfer>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
   </defs>
   <rect width="1024" height="1024" fill="url(#bg)"/>
-  <rect width="1024" height="1024" fill="url(#glowA)"/>
-  <rect width="1024" height="1024" fill="url(#glowB)"/>
-  <g filter="url(#shadow)">
-    <path d="M392 268c-30-18-68 4-68 39v410c0 35 38 57 68 39l354-205c30-17 30-61 0-78z" fill="url(#glass)"/>
-    <path d="M392 268c-30-18-68 4-68 39v410c0 35 38 57 68 39l354-205c30-17 30-61 0-78z" fill="none" stroke="url(#rim)" stroke-width="10"/>
-  </g>
-  <path d="M372 312c0-12 13-19 23-13l120 70" fill="none" stroke="#ffffff" stroke-opacity="0.85" stroke-width="16" stroke-linecap="round"/>
+  <path d="M410 300c-29-17-66 4-66 38v348c0 34 37 55 66 38l301-174c29-17 29-59 0-76z" fill="url(#glyph)"/>
 </svg>

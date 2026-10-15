@@ -2,7 +2,7 @@
   "appId": "app.playany.tv",
   "appName": "PlayAny TV",
   "webDir": "www",
-  "backgroundColor": "#07070c",
+  "backgroundColor": "#000000",
   "server": {
     "cleartext": true
   },

@@ -122,10 +122,9 @@ function hidePasswordModal() {
     if (passwordModal) {
         passwordModal.style.display = 'none';
 
-        // 如果启用豆瓣区域则显示豆瓣区域
-        if (localStorage.getItem('doubanEnabled') === 'true') {
-            document.getElementById('doubanArea').classList.remove('hidden');
-            initDouban();
+        // 恢复豆瓣区域的显示（豆瓣已在页面加载时初始化，这里只在列表为空时加载内容）
+        if (typeof updateDoubanVisibility === 'function') {
+            updateDoubanVisibility();
         }
     }
 }

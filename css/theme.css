@@ -659,6 +659,35 @@ body .douban-card .bg-black\/70 {
 #results > :nth-child(8), #douban-results > :nth-child(8) { animation-delay: 0.21s; }
 #results > :nth-child(n+9), #douban-results > :nth-child(n+9) { animation-delay: 0.24s; }
 
+/* ---------- 详情中的数据源切换（js/app.js renderSourceSwitcher） ---------- */
+.source-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+
+.source-switcher-label {
+    margin-right: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--ink-3);
+}
+
+body #modalContent .source-switcher button {
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    background: var(--fill);
+    color: var(--ink);
+    font-size: 0.85rem;
+}
+
+body #modalContent .source-switcher button.is-active {
+    background: var(--blue);
+    color: #fff;
+    font-weight: 600;
+}
+
 /* ---------- 继续观看（js/continue-watching.js） ---------- */
 .continue-watching {
     width: 100%;

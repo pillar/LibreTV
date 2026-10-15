@@ -660,12 +660,6 @@ async function search() {
             }
         });
 
-        // 更新搜索结果计数
-        const searchResultsCount = document.getElementById('searchResultsCount');
-        if (searchResultsCount) {
-            searchResultsCount.textContent = allResults.length;
-        }
-
         // 显示结果区域，调整搜索区域
         document.getElementById('searchArea').classList.remove('flex-1');
         document.getElementById('searchArea').classList.add('mb-8');
@@ -722,13 +716,20 @@ async function search() {
             });
         }
 
+        // 同一部剧在多个数据源中重复出现时合并为一张卡片，详情中可切换数据源
+        allResults = mergeSearchResults(allResults);
+        searchResultGroups = allResults.map(item => item._sources);
+        const resultCount = document.getElementById('searchResultsCount');
+        if (resultCount) resultCount.textContent = allResults.length;
+
         // 添加XSS保护，使用textContent和属性转义
-        const safeResults = allResults.map(item => {
+        const safeResults = allResults.map((item, resultIndex) => {
             const safeId = item.vod_id ? item.vod_id.toString().replace(/[^\w-]/g, '') : '';
             const vodName = (item.vod_name || '').toString();
             const safeName = escapeHtml(vodName);
-            const sourceInfo = item.source_name ?
-                `<span class="bg-[#222] text-xs px-1.5 py-0.5 rounded-full">${escapeHtml(item.source_name)}</span>` : '';
+            const sourceInfo = item._sources.length > 1
+                ? `<span class="bg-[#222] text-xs px-1.5 py-0.5 rounded-full">${item._sources.length} 个源</span>`
+                : item.source_name ? `<span class="bg-[#222] text-xs px-1.5 py-0.5 rounded-full">${escapeHtml(item.source_name)}</span>` : '';
             const sourceCode = item.source_code || '';
 
             // 添加API URL属性，用于详情获取
@@ -741,7 +742,7 @@ async function search() {
 
             return `
                 <div class="card-hover bg-[#111] rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-[1.02] h-full shadow-sm hover:shadow-md" 
-                     onclick="showDetails(${jsArg(safeId)},${jsArg(vodName)},${jsArg(sourceCode)})" ${apiUrlAttr}>
+                     onclick="openSearchResult(${resultIndex})" ${apiUrlAttr}>
                     <div class="flex h-full">
                         ${hasCover ? `
                         <div class="relative flex-shrink-0 search-card-img-container">
@@ -848,6 +849,51 @@ function hookInput() {
 document.addEventListener('DOMContentLoaded', hookInput);
 
 // 显示详情 - 修改为支持自定义API
+// ---- 搜索结果合并 ----
+// 每张卡片对应的数据源列表（[{ id, name, code, sourceName }]），供详情中的数据源切换使用
+let searchResultGroups = [];
+let currentDetailSources = [];
+
+function normalizeTitle(title) {
+    return String(title || '').toLowerCase().replace(/[\s\p{P}\p{S}]/gu, '');
+}
+
+// 按「名称 + 年份」合并结果；保留第一次出现的条目作为卡片内容，_sources 记录所有数据源
+function mergeSearchResults(results) {
+    const groups = new Map();
+    results.forEach(item => {
+        const key = `${normalizeTitle(item.vod_name)}|${item.vod_year || ''}`;
+        const source = { id: item.vod_id, name: item.vod_name, code: item.source_code || '', sourceName: item.source_name || '' };
+        if (groups.has(key)) groups.get(key)._sources.push(source);
+        else groups.set(key, { ...item, _sources: [source] });
+    });
+    return [...groups.values()];
+}
+
+function openSearchResult(index) {
+    const sources = searchResultGroups[index] || [];
+    if (!sources.length) return;
+    currentDetailSources = sources;
+    showDetails(sources[0].id, sources[0].name, sources[0].code);
+}
+
+// 详情顶部的数据源切换（只有一个数据源时不显示）
+function renderSourceSwitcher(container, id, sourceCode) {
+    const sources = currentDetailSources;
+    if (sources.length < 2 || !sources.some(s => String(s.id) === String(id) && s.code === sourceCode)) return;
+    const bar = document.createElement('div');
+    bar.className = 'source-switcher';
+    bar.innerHTML = `<span class="source-switcher-label">数据源</span>` + sources.map((s, i) => `
+        <button type="button" data-index="${i}" class="${String(s.id) === String(id) && s.code === sourceCode ? 'is-active' : ''}">${escapeHtml(s.sourceName || s.code)}</button>`).join('');
+    bar.addEventListener('click', event => {
+        const button = event.target.closest('button[data-index]');
+        if (!button || button.classList.contains('is-active')) return;
+        const s = sources[Number(button.dataset.index)];
+        showDetails(s.id, s.name, s.code);
+    });
+    container.prepend(bar);
+}
+
 async function showDetails(id, vod_name, sourceCode) {
     // 密码保护校验
     if (window.isPasswordProtected && window.isPasswordVerified) {
@@ -909,8 +955,10 @@ async function showDetails(id, vod_name, sourceCode) {
             // 构建详情信息HTML
             let detailInfoHtml = '';
             if (data.videoInfo) {
-                // Prepare description text, strip HTML and trim whitespace
-                const descriptionText = data.videoInfo.desc ? data.videoInfo.desc.replace(/<[^>]+>/g, '').trim() : '';
+                // 数据源的简介常含 HTML 标签与实体（如 &nbsp;）：用 DOMParser 取纯文本（不会执行脚本），输出时再转义
+                const descriptionText = data.videoInfo.desc
+                    ? (new DOMParser().parseFromString(String(data.videoInfo.desc), 'text/html').body.textContent || '').replace(/\u00a0/g, ' ').trim()
+                    : '';
 
                 // Check if there's any actual grid content
                 const hasGridContent = data.videoInfo.type || data.videoInfo.year || data.videoInfo.area || data.videoInfo.director || data.videoInfo.actor || data.videoInfo.remarks;
@@ -974,6 +1022,7 @@ async function showDetails(id, vod_name, sourceCode) {
                 </div>
             `;
         }
+        renderSourceSwitcher(modalContent, id, sourceCode);
 
         modal.classList.remove('hidden');
     } catch (error) {

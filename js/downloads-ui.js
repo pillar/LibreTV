@@ -124,6 +124,30 @@
         });
     }
 
+    function addToDownloads(series, picked) {
+        const added = downloads.add(series, picked);
+        showToast(added ? `已加入下载 ${added} 集` : '已在下载列表中', added ? 'success' : 'info');
+    }
+
+    // ---- 首页详情：缓存全部剧集 ----
+    function attachToDetail(container, series) {
+        const copyButton = container.querySelector('button[onclick="copyLinks()"]');
+        if (!copyButton || !series.episodes || !series.episodes.length) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'flex items-center gap-2';
+        copyButton.replaceWith(wrapper);
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'px-3 py-1.5 bg-[#333] hover:bg-[#444] rounded text-sm transition-colors flex items-center gap-1 download-cache-btn';
+        button.innerHTML = `${ICON_DOWNLOAD}<span>缓存全部</span>`;
+        button.addEventListener('click', () => addToDownloads(
+            { title: series.title, vodId: series.vodId || '', sourceCode: series.sourceCode || '', episodes: series.episodes.slice() },
+            series.episodes.map((url, episodeIndex) => ({ url, episodeIndex }))
+        ));
+        wrapper.append(button, copyButton);
+    }
+    window.OfflineDownloadsUI = { attachToDetail };
+
     // ---- 播放页：缓存按钮 ----
     function setupPlayerButton() {
         const lockButton = document.getElementById('lockToggle');
@@ -159,13 +183,12 @@
             const picked = scope === 'all'
                 ? episodes.map((url, episodeIndex) => ({ url, episodeIndex }))
                 : [{ url: episodes[currentEpisodeIndex] || currentVideoUrl, episodeIndex: currentEpisodeIndex }];
-            const added = downloads.add({
+            addToDownloads({
                 title: currentVideoTitle,
                 vodId: params.get('id') || '',
                 sourceCode: params.get('source') || '',
                 episodes
             }, picked);
-            showToast(added ? `已加入下载 ${added} 集` : '已在下载列表中', added ? 'success' : 'info');
         });
     }
 

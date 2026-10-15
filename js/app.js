@@ -962,6 +962,10 @@ async function showDetails(id, vod_name, sourceCode) {
                     ${renderEpisodes(vod_name, sourceCode, id)}
                 </div>
             `;
+            // App 内在详情中提供「缓存全部」（见 js/downloads-ui.js）
+            if (window.OfflineDownloadsUI) {
+                window.OfflineDownloadsUI.attachToDetail(modalContent, { title: vod_name, vodId: id, sourceCode, episodes: currentEpisodes });
+            }
         } else {
             modalContent.innerHTML = `
                 <div class="text-center py-8">

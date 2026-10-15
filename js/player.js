@@ -102,6 +102,11 @@ let shortcutHintTimeout = null; // 用于控制快捷键提示显示时间
 let adFilteringEnabled = true; // 默认开启广告过滤
 let progressSaveInterval = null; // 定期保存进度的计时器
 let currentVideoUrl = ''; // 记录当前实际的视频URL
+// 实际已加载到播放器中的视频地址；切换剧集期间为 null。
+// 进度按它保存，避免切换过程中旧视频的事件把进度写到新剧集名下
+let progressUrl = null;
+// 正在通过 art.switchUrl 切换剧集（ArtPlayer 会在加载后把进度归零，需在切换完成后再恢复续播）
+let switchingEpisode = false;
 const isWebkit = (typeof window.webkitConvertPointFromNodeToPage === 'function')
 Artplayer.FULLSCREEN_WEB_IN_BODY = true;
 
@@ -623,33 +628,10 @@ function initPlayer(videoUrl) {
     art.on('video:loadedmetadata', function() {
         document.getElementById('player-loading').style.display = 'none';
         videoHasEnded = false; // 视频加载时重置结束标志
-        // 优先使用URL传递的position参数
-        const urlParams = new URLSearchParams(window.location.search);
-        const savedPosition = parseInt(urlParams.get('position') || '0');
-
-        if (savedPosition > 10 && savedPosition < art.duration - 2) {
-            // 如果URL中有有效的播放位置参数，直接使用它
-            art.currentTime = savedPosition;
-            showPositionRestoreHint(savedPosition);
-        } else {
-            // 否则尝试从本地存储恢复播放进度
-            try {
-                const progressKey = 'videoProgress_' + getVideoId();
-                const progressStr = localStorage.getItem(progressKey);
-                if (progressStr && art.duration > 0) {
-                    const progress = JSON.parse(progressStr);
-                    if (
-                        progress &&
-                        typeof progress.position === 'number' &&
-                        progress.position > 10 &&
-                        progress.position < art.duration - 2
-                    ) {
-                        art.currentTime = progress.position;
-                        showPositionRestoreHint(progress.position);
-                    }
-                }
-            } catch (e) {
-            }
+        // 切换剧集时 ArtPlayer 会在 loadedmetadata 之后把进度归零，续播在 playEpisode 中等切换完成后再恢复
+        if (!switchingEpisode) {
+            restoreSavedProgress();
+            progressUrl = currentVideoUrl;
         }
 
         // 设置进度条点击监听
@@ -702,8 +684,9 @@ function initPlayer(videoUrl) {
 
     // 添加双击全屏支持
     art.on('video:playing', () => {
-        // 绑定双击事件到视频容器
-        if (art.video) {
+        // 绑定双击事件到视频元素（video:playing 每次继续播放都会触发，只绑定一次，避免双击时切换多次）
+        if (art.video && !art.video.dataset.dblclickBound) {
+            art.video.dataset.dblclickBound = '1';
             art.video.addEventListener('dblclick', () => {
                 toggleFullscreen();
                 art.play();
@@ -889,12 +872,15 @@ function playEpisode(index) {
     // 准备切换剧集的URL
     const url = currentEpisodes[index];
 
+    // 先保存当前集的进度，切换期间暂停保存（新视频加载完成后在 video:loadedmetadata 中恢复）
+    saveCurrentProgress();
+    progressUrl = null;
+
     // 更新当前剧集索引
     currentEpisodeIndex = index;
     currentVideoUrl = url;
     videoHasEnded = false; // 重置视频结束标志
-
-    clearVideoProgress();
+    // 不在这里清除进度：此时 currentVideoUrl 已是目标集，清除的会是目标集的续播进度（看完的集在 video:ended 中清除）
 
     // 更新URL参数（不刷新页面）
     const currentUrl = new URL(window.location.href);
@@ -906,7 +892,13 @@ function playEpisode(index) {
     if (isWebkit) {
         initPlayer(url);
     } else {
-        art.switch = url;
+        switchingEpisode = true;
+        art.switchUrl(url).then(() => {
+            restoreSavedProgress();
+        }).catch(() => {}).finally(() => {
+            switchingEpisode = false;
+            progressUrl = currentVideoUrl;
+        });
     }
 
     // 更新UI
@@ -919,6 +911,38 @@ function playEpisode(index) {
 
     // 三秒后保存到历史记录
     setTimeout(() => saveToHistory(), 3000);
+}
+
+// 恢复播放进度：优先使用 URL 中的 position 参数，否则使用本地保存的该集进度
+function restoreSavedProgress() {
+    // 优先使用URL传递的position参数
+    const urlParams = new URLSearchParams(window.location.search);
+    const savedPosition = parseInt(urlParams.get('position') || '0');
+
+    if (savedPosition > 10 && savedPosition < art.duration - 2) {
+        // 如果URL中有有效的播放位置参数，直接使用它
+        art.currentTime = savedPosition;
+        showPositionRestoreHint(savedPosition);
+    } else {
+        // 否则尝试从本地存储恢复播放进度
+        try {
+            const progressKey = 'videoProgress_' + getVideoId();
+            const progressStr = localStorage.getItem(progressKey);
+            if (progressStr && art.duration > 0) {
+                const progress = JSON.parse(progressStr);
+                if (
+                    progress &&
+                    typeof progress.position === 'number' &&
+                    progress.position > 10 &&
+                    progress.position < art.duration - 2
+                ) {
+                    art.currentTime = progress.position;
+                    showPositionRestoreHint(progress.position);
+                }
+            }
+        } catch (e) {
+        }
+    }
 }
 
 // 播放上一集
@@ -1199,13 +1223,13 @@ function startProgressSaveInterval() {
 
 // 保存当前播放进度
 function saveCurrentProgress() {
-    if (!art || !art.video) return;
+    if (!art || !art.video || !progressUrl) return;
     const currentTime = art.video.currentTime;
     const duration = art.video.duration;
     if (!duration || currentTime < 1) return;
 
-    // 在localStorage中保存进度
-    const progressKey = `videoProgress_${getVideoId()}`;
+    // 在localStorage中保存进度（按实际在播的视频地址，与 getVideoId() 的格式一致）
+    const progressKey = `videoProgress_${encodeURIComponent(progressUrl)}`;
     const progressData = {
         position: currentTime,
         duration: duration,

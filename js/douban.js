@@ -403,9 +403,13 @@ function fetchDoubanTags() {
 }
 
 // 渲染热门推荐内容
+// 递增的请求序号：快速切换标签时，只渲染最后一次请求的结果，避免旧请求后返回覆盖新标签的内容
+let doubanRequestSeq = 0;
+
 function renderRecommend(tag, pageLimit, pageStart) {
     const container = document.getElementById("douban-results");
     if (!container) return;
+    const requestSeq = ++doubanRequestSeq;
 
     const loadingOverlayHTML = `
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-10">
@@ -419,14 +423,16 @@ function renderRecommend(tag, pageLimit, pageStart) {
     container.classList.add("relative");
     container.insertAdjacentHTML('beforeend', loadingOverlayHTML);
     
-    const target = `https://movie.douban.com/j/search_subjects?type=${doubanMovieTvCurrentSwitch}&tag=${tag}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`;
+    const target = `https://movie.douban.com/j/search_subjects?type=${encodeURIComponent(doubanMovieTvCurrentSwitch)}&tag=${encodeURIComponent(tag)}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`;
     
     // 使用通用请求函数
     fetchDoubanData(target)
         .then(data => {
+            if (requestSeq !== doubanRequestSeq) return;
             renderDoubanCards(data, container);
         })
         .catch(error => {
+            if (requestSeq !== doubanRequestSeq) return;
             console.error("获取豆瓣数据失败：", error);
             container.innerHTML = `
                 <div class="col-span-full text-center py-8">

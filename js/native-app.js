@@ -12,6 +12,60 @@
         plugins.SystemBars.setStyle({ style: 'LIGHT' }).catch(() => {});
     }
 
+    // ---- 播放器沉浸式全屏与锁定（由 player.js 调用） ----
+    // App 内不用 WebView 的元素全屏，而是网页内全屏 + 横屏 + 隐藏系统栏；
+    // 锁定时通知原生（iOS）推迟系统边缘手势，防止误触退出。
+    window.NativeApp = {
+        async setImmersive(on) {
+            const bars = plugins.SystemBars;
+            const orientation = plugins.ScreenOrientation;
+            // 不指定具体的栏时，SystemBars 会同时隐藏/显示状态栏和 Home 条（Android 为导航栏）。
+            // iOS 上状态栏的显示/隐藏动画会打断正在进行的旋转，所以先切换系统栏、等动画结束再旋转。
+            const lockTo = async type => {
+                try {
+                    await orientation.lock({ orientation: type });
+                } catch {
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    await orientation.lock({ orientation: type }).catch(() => {});
+                }
+            };
+            try {
+                if (on) {
+                    if (bars) await bars.hide();
+                    await new Promise(resolve => setTimeout(resolve, 350));
+                    if (orientation) await lockTo('landscape');
+                } else {
+                    if (bars) await bars.show();
+                    await new Promise(resolve => setTimeout(resolve, 350));
+                    // 先转回竖屏再解除锁定，否则横持手机时会停留在横屏
+                    if (orientation) {
+                        await lockTo('portrait');
+                        // lock() 发出旋转请求后立即返回，等旋转完成再解锁，否则会被解锁打断
+                        await new Promise(resolve => setTimeout(resolve, 800));
+                        await orientation.unlock();
+                    }
+                }
+            } catch (error) {
+                console.error('切换沉浸式全屏失败:', error && error.message);
+            }
+        },
+        setLocked(on) {
+            if (plugins.ScreenLock) plugins.ScreenLock.setLocked({ locked: on }).catch(() => {});
+        }
+    };
+
+    // Android 返回键：先派发 nativeback 事件交给页面处理（播放器锁定时忽略、全屏时退出全屏），
+    // 页面未处理时再后退或退出 App
+    if (plugins.App) {
+        plugins.App.addListener('backButton', ({ canGoBack }) => {
+            const event = new CustomEvent('nativeback', { cancelable: true });
+            window.dispatchEvent(event);
+            if (event.defaultPrevented) return;
+            if (canGoBack) window.history.back();
+            else plugins.App.exitApp();
+        });
+    }
+
     const nativeHttp = plugins.CapacitorHttp;
     if (!nativeHttp) {
         console.error('CapacitorHttp 不可用，App 内无法请求数据源');

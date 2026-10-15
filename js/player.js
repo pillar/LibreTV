@@ -296,6 +296,8 @@ function initializePageContent() {
 function handleKeyboardShortcuts(e) {
     // 忽略输入框中的按键事件
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    // 播放器锁定时不响应快捷键
+    if (controlsLocked) return;
 
     // Alt + 左箭头 = 上一集
     if (e.altKey && e.key === 'ArrowLeft') {
@@ -363,7 +365,7 @@ function handleKeyboardShortcuts(e) {
     // f 键 = 切换全屏
     if (e.key === 'f' || e.key === 'F') {
         if (art) {
-            art.fullscreen = !art.fullscreen;
+            toggleFullscreen();
             showShortcutHint('切换全屏', 'fullscreen');
             e.preventDefault();
         }
@@ -467,7 +469,7 @@ function initPlayer(videoUrl) {
         flip: false,
         playbackRate: true,
         aspectRatio: false,
-        fullscreen: true,
+        fullscreen: !window.NativeApp,
         fullscreenWeb: true,
         subtitleOffset: false,
         miniProgressBar: true,
@@ -594,81 +596,18 @@ function initPlayer(videoUrl) {
         }
     });
 
-    // 自动隐藏工具栏的逻辑
-    let hideTimer;
-    const HIDE_DELAY = 2000; // 2秒后隐藏
-
-    // 创建鼠标跟踪状态
-    let isMouseActive = false;
-    let isMouseOverPlayer = false;
-
-    function hideControls() {
-        if (isMouseActive || !isMouseOverPlayer) return;
-        art.controls.show = false;
-    }
-
-    function showControls() {
-        art.controls.show = true;
-    }
-
-    function resetHideTimer() {
-        clearTimeout(hideTimer);
-        showControls();
-        isMouseActive = true;
-
-        hideTimer = setTimeout(() => {
-            isMouseActive = false;
-            hideControls();
-        }, HIDE_DELAY);
-    }
-
-    // 监听全屏状态变化
-    art.on('fullscreenWeb:enter', () => {
-        // 添加全局事件监听
-        document.addEventListener('mousemove', resetHideTimer);
-        document.addEventListener('mouseleave', handleMouseLeave);
-        document.addEventListener('mouseenter', handleMouseEnter);
-
-        // 添加播放器区域事件
-        art.player.addEventListener('mouseenter', () => isMouseOverPlayer = true);
-        art.player.addEventListener('mouseleave', () => isMouseOverPlayer = false);
-
-        // 初始状态
-        isMouseOverPlayer = true;
-        resetHideTimer();
+    // 网页内全屏：App 内同时横屏并隐藏系统栏。
+    // ArtPlayer 只发出 fullscreenWeb 事件，参数表示进入（true）或退出（false）；控制栏的自动隐藏由 ArtPlayer 自身处理。
+    art.on('fullscreenWeb', state => {
+        if (window.NativeApp) window.NativeApp.setImmersive(state);
     });
-
-    art.on('fullscreenWeb:exit', () => {
-        // 移除所有事件监听
-        document.removeEventListener('mousemove', resetHideTimer);
-        document.removeEventListener('mouseleave', handleMouseLeave);
-        document.removeEventListener('mouseenter', handleMouseEnter);
-
-        art.player.removeEventListener('mouseenter', () => isMouseOverPlayer = true);
-        art.player.removeEventListener('mouseleave', () => isMouseOverPlayer = false);
-
-        // 清除定时器并显示控件
-        clearTimeout(hideTimer);
-        showControls();
-    });
-
-    // 处理鼠标离开浏览器窗口
-    function handleMouseLeave() {
-        // 立即隐藏工具栏
-        hideControls();
-        clearTimeout(hideTimer);
-    }
-    
-    // 处理鼠标返回浏览器窗口
-    function handleMouseEnter() {
-        isMouseActive = true;
-        resetHideTimer();
-    }
 
     // 播放器加载完成后初始隐藏工具栏
     art.on('ready', () => {
         art.controls.show = false;
     });
+
+    setupPlayerLock();
 
     // 全屏模式处理
     art.on('fullscreen', function () {
@@ -757,7 +696,7 @@ function initPlayer(videoUrl) {
                 videoHasEnded = false; // 重置标志
             }, 1000);
         } else {
-            art.fullscreen = false;
+            exitFullscreen();
         }
     });
 
@@ -766,7 +705,7 @@ function initPlayer(videoUrl) {
         // 绑定双击事件到视频容器
         if (art.video) {
             art.video.addEventListener('dblclick', () => {
-                art.fullscreen = !art.fullscreen;
+                toggleFullscreen();
                 art.play();
             });
         }
@@ -1339,6 +1278,9 @@ function setupLongPressSpeedControl() {
             return; // 视频暂停时不触发长按功能
         }
 
+        // 播放器锁定时不触发长按倍速
+        if (controlsLocked) return;
+
         // 保存原始播放速度
         originalPlaybackRate = art.video.playbackRate;
 
@@ -1436,17 +1378,108 @@ function getVideoId() {
     return `${encodeURIComponent(currentVideoTitle)}_${currentEpisodeIndex}`;
 }
 
-let controlsLocked = false;
-function toggleControlsLock() {
-    const container = document.getElementById('playerContainer');
-    controlsLocked = !controlsLocked;
-    container.classList.toggle('controls-locked', controlsLocked);
-    const icon = document.getElementById('lockIcon');
-    // 切换图标：锁 / 解锁
-    icon.innerHTML = controlsLocked
-        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d=\"M12 15v2m0-8V7a4 4 0 00-8 0v2m8 0H4v8h16v-8H6v-6z\"/>'
-        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d=\"M15 11V7a3 3 0 00-6 0v4m-3 4h12v6H6v-6z\"/>';
+// ---- 全屏与锁定 ----
+// App 内（存在 window.NativeApp）使用网页内全屏，并由原生负责横屏与隐藏系统栏；浏览器中使用浏览器全屏。
+function toggleFullscreen() {
+    if (!art) return;
+    if (window.NativeApp) art.fullscreenWeb = !art.fullscreenWeb;
+    else art.fullscreen = !art.fullscreen;
 }
+
+function exitFullscreen() {
+    if (!art) return;
+    if (art.fullscreenWeb) art.fullscreenWeb = false;
+    if (art.fullscreen) art.fullscreen = false;
+}
+
+const LOCK_ICONS = {
+    locked: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+    unlocked: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.8-1.3"/></svg>'
+};
+
+// 锁定：隐藏全部控件，并用一层遮挡拦截点击、双击、拖动等操作，只保留锁按钮；
+// 锁定期间轻点画面只会短暂显示锁按钮，防止观看时误触暂停、拖动进度或退出全屏。
+let controlsLocked = false;
+let lockFlashTimer = null;
+
+function setupPlayerLock() {
+    const $player = art.template.$player;
+    const layer = document.createElement('div');
+    layer.className = 'art-lock-layer';
+    layer.innerHTML = '<button type="button" class="art-lock-btn"></button>';
+    $player.appendChild(layer);
+
+    const button = layer.querySelector('.art-lock-btn');
+    button.addEventListener('click', event => {
+        event.stopPropagation();
+        setControlsLocked(!controlsLocked);
+    });
+    // 锁定时遮挡层接收点击：只闪现锁按钮
+    layer.addEventListener('click', event => {
+        if (event.target === layer) flashLockButton();
+    });
+    ['dblclick', 'touchstart', 'touchmove', 'mousedown', 'wheel', 'contextmenu'].forEach(type => {
+        layer.addEventListener(type, event => {
+            if (event.target === layer) event.stopPropagation();
+        }, { passive: true });
+    });
+
+    renderLockState();
+}
+
+function setControlsLocked(locked) {
+    controlsLocked = locked;
+    if (art) {
+        if (locked) art.controls.show = false;
+        art.notice.show = locked ? '屏幕已锁定' : '屏幕已解锁';
+    }
+    renderLockState();
+    flashLockButton();
+    if (window.NativeApp) window.NativeApp.setLocked(locked);
+}
+
+function renderLockState() {
+    const label = controlsLocked ? '解锁屏幕' : '锁定屏幕';
+    if (art) {
+        art.template.$player.classList.toggle('art-locked', controlsLocked);
+        const button = art.template.$player.querySelector('.art-lock-btn');
+        if (button) {
+            button.innerHTML = controlsLocked ? LOCK_ICONS.locked : LOCK_ICONS.unlocked;
+            button.setAttribute('aria-label', label);
+            button.title = label;
+        }
+    }
+    // 播放器下方的锁定按钮同步状态
+    const pageButton = document.getElementById('lockToggle');
+    if (pageButton) {
+        pageButton.innerHTML = controlsLocked ? LOCK_ICONS.locked : LOCK_ICONS.unlocked;
+        pageButton.title = label;
+        pageButton.classList.toggle('is-locked', controlsLocked);
+    }
+}
+
+function flashLockButton() {
+    if (!art) return;
+    const $player = art.template.$player;
+    $player.classList.add('art-lock-flash');
+    clearTimeout(lockFlashTimer);
+    lockFlashTimer = setTimeout(() => $player.classList.remove('art-lock-flash'), 2500);
+}
+
+function toggleControlsLock() {
+    setControlsLocked(!controlsLocked);
+}
+
+// App 返回键（Android）：锁定时忽略，全屏时先退出全屏
+window.addEventListener('nativeback', event => {
+    if (controlsLocked) {
+        event.preventDefault();
+        flashLockButton();
+    } else if (art && art.fullscreenWeb) {
+        event.preventDefault();
+        art.fullscreenWeb = false;
+    }
+});
 
 // 支持在iframe中关闭播放器
 function closeEmbeddedPlayer() {

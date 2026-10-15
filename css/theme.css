@@ -940,6 +940,83 @@ body .switch input:checked + .slider {
     background: var(--green);
 }
 
+/* ---------- 播放器锁定（js/player.js setupPlayerLock） ---------- */
+.art-lock-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 95;
+    pointer-events: none;
+}
+
+/* 锁定后遮挡层接收所有触摸，阻止暂停、拖动进度、双击全屏等误操作 */
+.art-locked .art-lock-layer {
+    pointer-events: auto;
+}
+
+.art-lock-btn {
+    position: absolute;
+    top: 50%;
+    left: max(14px, env(safe-area-inset-left));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.45);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-50%) scale(0.9);
+    transition: opacity 0.25s var(--ease), transform 0.3s var(--spring);
+}
+
+.art-lock-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* 控制条显示时，或刚点过画面/锁按钮时，显示锁按钮 */
+.art-control-show .art-lock-btn,
+.art-hover:not(.art-locked) .art-lock-btn,
+.art-lock-flash .art-lock-btn {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%);
+}
+
+.art-locked .art-lock-btn {
+    background: rgba(255, 255, 255, 0.92);
+    color: #000;
+}
+
+.art-locked .art-bottom,
+.art-locked .art-mask,
+.art-locked .art-settings,
+.art-locked .art-contextmenus,
+.art-locked .art-layers,
+.art-locked .art-loading {
+    display: none !important;
+}
+
+/* 横屏全屏时控制条让开刘海/灵动岛 */
+.art-fullscreen-web .art-bottom {
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+}
+
+body #lockToggle svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+body #lockToggle.is-locked {
+    background: var(--blue);
+    color: #fff;
+}
+
 /* ---------- App 网络不可用提示（js/native-app.js） ---------- */
 .network-hint {
     position: fixed;

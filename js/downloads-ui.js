@@ -33,10 +33,14 @@
                 <button type="button" class="downloads-close" aria-label="关闭">✕</button>
             </div>
             <div class="downloads-list"></div>
-            <div class="downloads-footer"></div>`;
+            <div class="downloads-footer">
+                <span class="downloads-summary"></span>
+                <button type="button" class="downloads-clear">全部清空</button>
+            </div>`;
         document.body.appendChild(panel);
         const list = panel.querySelector('.downloads-list');
-        const footer = panel.querySelector('.downloads-footer');
+        const footer = panel.querySelector('.downloads-summary');
+        const clearButton = panel.querySelector('.downloads-clear');
 
         const open = () => {
             panel.classList.add('show');
@@ -49,6 +53,11 @@
             panel.setAttribute('aria-hidden', 'true');
         };
         navButton.addEventListener('click', open);
+        clearButton.addEventListener('click', async () => {
+            if (!confirm('清空全部下载内容？此操作不可恢复。')) return;
+            await downloads.removeAll();
+            refreshUsage();
+        });
         panel.querySelector('.downloads-close').addEventListener('click', close);
         window.addEventListener('nativeback', event => {
             if (panel.classList.contains('show')) {
@@ -59,14 +68,18 @@
 
         // 底部统计：集数每次渲染都更新；占用空间需要读取文件列表，最多每 2 秒统计一次，且最后一次变化后一定补算
         let usageText = '…';
+        let usageById = {};
         let usageTimer = null;
         function renderFooter() {
-            const count = downloads.list().filter(item => item.status === 'done').length;
+            const items = downloads.list();
+            const count = items.filter(item => item.status === 'done').length;
             footer.textContent = `已下载 ${count} 集 · 占用 ${usageText}`;
+            clearButton.hidden = !items.length;
         }
         async function refreshUsage() {
-            usageText = formatBytes(await downloads.usage());
-            renderFooter();
+            usageById = await downloads.usageById();
+            usageText = formatBytes(Object.values(usageById).reduce((sum, bytes) => sum + bytes, 0));
+            render();
         }
         function scheduleUsage() {
             if (usageTimer) return;
@@ -90,8 +103,14 @@
                 groups.get(item.seriesKey).push(item);
             });
             list.innerHTML = [...groups.values()].map(group => `
-                <section class="downloads-group">
-                    <h4>${escapeHtml(group[0].title)}</h4>
+                <section class="downloads-group" data-series="${escapeHtml(group[0].seriesKey)}">
+                    <div class="downloads-group-header">
+                        <div>
+                            <h4>${escapeHtml(group[0].title)}</h4>
+                            <div class="downloads-group-meta">${group.length} 集 · ${formatBytes(group.reduce((sum, item) => sum + (usageById[item.id] || 0), 0))}</div>
+                        </div>
+                        <button type="button" data-series-action="remove" class="downloads-remove">删除整部</button>
+                    </div>
                     ${group.map(item => {
                         const percent = item.total ? Math.floor(item.done / item.total * 100) : 0;
                         const status = item.status === 'downloading' && item.total
@@ -115,6 +134,16 @@
         }
 
         list.addEventListener('click', async event => {
+            const seriesButton = event.target.closest('[data-series-action]');
+            if (seriesButton) {
+                const section = seriesButton.closest('.downloads-group');
+                const title = section.querySelector('h4').textContent;
+                if (confirm(`删除《${title}》的全部下载内容？`)) {
+                    await downloads.removeSeries(section.dataset.series);
+                    refreshUsage();
+                }
+                return;
+            }
             const button = event.target.closest('[data-action]');
             const row = event.target.closest('.downloads-item');
             if (!button || !row) return;

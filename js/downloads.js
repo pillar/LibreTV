@@ -281,15 +281,28 @@
             const item = store.items[hashId(url)];
             return item ? item.status : null;
         },
-        async usage() {
-            let bytes = 0;
+        // 每个下载条目占用的字节数 { [id]: bytes }
+        async usageById() {
+            const result = {};
             for (const id of Object.keys(store.items)) {
+                result[id] = 0;
                 try {
                     const { files } = await Filesystem.readdir({ directory: DIRECTORY, path: folderOf(id) });
-                    files.forEach(f => { bytes += f.size || 0; });
+                    files.forEach(f => { result[id] += f.size || 0; });
                 } catch { /* 目录可能尚未创建 */ }
             }
-            return bytes;
+            return result;
+        },
+        async usage() {
+            return Object.values(await api.usageById()).reduce((sum, bytes) => sum + bytes, 0);
+        },
+        async removeSeries(seriesKey) {
+            for (const item of Object.values(store.items).filter(i => i.seriesKey === seriesKey)) {
+                await api.remove(item.id);
+            }
+        },
+        async removeAll() {
+            for (const id of Object.keys(store.items)) await api.remove(id);
         },
         onChange(fn) {
             listeners.add(fn);

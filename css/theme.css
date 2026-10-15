@@ -1080,9 +1080,30 @@ body #lockToggle.is-locked {
     overflow: hidden;
 }
 
+.downloads-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem 0.35rem;
+}
+
 .downloads-group h4 {
-    padding: 0.75rem 1rem 0.25rem;
     font-weight: 600;
+}
+
+.downloads-group-meta {
+    font-size: 0.8rem;
+    color: var(--ink-3);
+}
+
+.downloads-group-header button {
+    flex-shrink: 0;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: var(--fill);
+    color: var(--red);
+    font-size: 0.85rem;
 }
 
 .downloads-item {
@@ -1093,7 +1114,7 @@ body #lockToggle.is-locked {
     border-top: 0.5px solid var(--separator);
 }
 
-.downloads-group h4 + .downloads-item {
+.downloads-group-header + .downloads-item {
     border-top: 0;
 }
 
@@ -1150,10 +1171,21 @@ body #lockToggle.is-locked {
 }
 
 .downloads-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
     padding-top: 0.75rem;
-    text-align: center;
     font-size: 0.8rem;
     color: var(--ink-3);
+}
+
+.downloads-clear {
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: var(--fill);
+    color: var(--red);
+    font-size: 0.8rem;
 }
 
 .download-cache-btn svg {

@@ -1,4 +1,30 @@
 // UI相关函数
+
+// 转义后可安全放入 HTML 文本或属性值
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// 生成可放入内联事件属性（onclick="fn(...)"）的 JS 字符串字面量，例如 onclick="play(${jsArg(url)})"
+function jsArg(value) {
+    return escapeHtml(JSON.stringify(String(value ?? '')));
+}
+
+// 只允许 http(s) 地址，用于 img src / a href 等来自第三方数据的链接
+function safeHttpUrl(value) {
+    try {
+        const url = new URL(String(value || ''), window.location.href);
+        return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : '';
+    } catch {
+        return '';
+    }
+}
+
 function toggleSettings(e) {
     // 密码保护校验
     if (window.isPasswordProtected && window.isPasswordVerified) {
@@ -383,17 +409,14 @@ function loadViewingHistory() {
     // 渲染历史记录
     historyList.innerHTML = history.map(item => {
         // 防止XSS
-        const safeTitle = item.title
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
-
-        const safeSource = item.sourceName ?
-            item.sourceName.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') :
-            '未知来源';
+        const safeTitle = escapeHtml(item.title);
+        const safeSource = item.sourceName ? escapeHtml(item.sourceName) : '未知来源';
+        // 历史记录可能来自导入的配置，数值字段统一转成数字再拼接
+        const episodeIndex = Number(item.episodeIndex) || 0;
+        const playbackPosition = Number(item.playbackPosition) || 0;
 
         const episodeText = item.episodeIndex !== undefined ?
-            `第${item.episodeIndex + 1}集` : '';
+            `第${episodeIndex + 1}集` : '';
 
         // 格式化剧集信息
         let episodeInfoHtml = '';
@@ -422,13 +445,10 @@ function loadViewingHistory() {
             `;
         }
 
-        // 为防止XSS，使用encodeURIComponent编码URL
-        const safeURL = encodeURIComponent(item.url);
-
         // 构建历史记录项HTML，添加删除按钮，需要放在position:relative的容器中
         return `
-            <div class="history-item cursor-pointer relative group" onclick="playFromHistory('${item.url}', '${safeTitle}', ${item.episodeIndex || 0}, ${item.playbackPosition || 0})">
-                <button onclick="event.stopPropagation(); deleteHistoryItem('${safeURL}')"
+            <div class="history-item cursor-pointer relative group" onclick="playFromHistory(${jsArg(item.url)}, ${jsArg(item.title)}, ${episodeIndex}, ${playbackPosition})">
+                <button onclick="event.stopPropagation(); deleteHistoryItem(${jsArg(encodeURIComponent(item.url))})"
                         class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-400 p-1 rounded-full hover:bg-gray-800 z-10"
                         title="删除记录">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

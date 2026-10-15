@@ -1,0 +1,23 @@
+{
+  "name": "playany-tv-mobile",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "PlayAny TV iOS / Android 客户端（Capacitor）",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build:web": "node scripts/copy-web.mjs",
+    "sync": "npm run build:web && cap sync",
+    "open:ios": "cap open ios",
+    "open:android": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/ios": "8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3"
+  }
+}

@@ -122,6 +122,17 @@ function isValidUrl(urlString) {
   }
 }
 
+// 代理响应不能被当成本站页面执行：只放行数据/媒体类型，其余按纯文本返回，并禁止脚本执行
+const SAFE_PROXY_CONTENT_TYPE = /^(application\/(json|vnd\.apple\.mpegurl|x-mpegurl|octet-stream)|video\/|audio\/|image\/(?!svg)|text\/plain)/i;
+
+function setSafeProxyHeaders(res, contentType) {
+  res.set({
+    'Content-Type': SAFE_PROXY_CONTENT_TYPE.test(contentType || '') ? contentType : 'text/plain; charset=utf-8',
+    'X-Content-Type-Options': 'nosniff',
+    'Content-Security-Policy': 'sandbox'
+  });
+}
+
 // 代理路由
 app.get('/proxy/:encodedUrl', async (req, res) => {
   try {
@@ -147,7 +158,9 @@ app.get('/proxy/:encodedUrl', async (req, res) => {
           responseType: 'stream',
           timeout: config.timeout,
           headers: {
-            'User-Agent': config.userAgent
+            'User-Agent': config.userAgent,
+            // 豆瓣图床校验 Referer，不带会返回 418
+            ...(/(^|\.)doubanio\.com$/.test(new URL(targetUrl).hostname) ? { Referer: 'https://movie.douban.com/' } : {})
           }
         });
       } catch (error) {
@@ -171,6 +184,7 @@ app.get('/proxy/:encodedUrl', async (req, res) => {
     
     sensitiveHeaders.forEach(header => delete headers[header]);
     res.set(headers);
+    setSafeProxyHeaders(res, response.headers['content-type']);
 
     // 管道传输响应流
     response.data.pipe(res);
@@ -178,6 +192,7 @@ app.get('/proxy/:encodedUrl', async (req, res) => {
     console.error('代理请求错误:', error.message);
     if (error.response) {
       res.status(error.response.status || 500);
+      setSafeProxyHeaders(res, error.response.headers['content-type']);
       error.response.data.pipe(res);
     } else {
       res.status(500).send(`请求失败: ${error.message}`);

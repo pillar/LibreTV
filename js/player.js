@@ -1,6 +1,16 @@
 const selectedAPIs = JSON.parse(localStorage.getItem('selectedAPIs') || '[]');
 const customAPIs = JSON.parse(localStorage.getItem('customAPIs') || '[]'); // 存储自定义API列表
 
+// 返回地址只接受本站页面，防止 returnUrl=javascript:... 之类的跳转
+function sameOriginUrl(value) {
+    try {
+        const url = new URL(String(value || ''), window.location.href);
+        return url.origin === window.location.origin ? url.href : '';
+    } catch {
+        return '';
+    }
+}
+
 // 改进返回功能
 function goBack(event) {
     // 防止默认链接行为
@@ -10,14 +20,15 @@ function goBack(event) {
     const urlParams = new URLSearchParams(window.location.search);
     const returnUrl = urlParams.get('returnUrl');
     
-    if (returnUrl) {
+    const safeReturnUrl = returnUrl && sameOriginUrl(decodeURIComponent(returnUrl));
+    if (safeReturnUrl) {
         // 如果URL中有returnUrl参数，优先使用
-        window.location.href = decodeURIComponent(returnUrl);
+        window.location.href = safeReturnUrl;
         return;
     }
     
     // 2. 检查localStorage中保存的lastPageUrl
-    const lastPageUrl = localStorage.getItem('lastPageUrl');
+    const lastPageUrl = sameOriginUrl(localStorage.getItem('lastPageUrl'));
     if (lastPageUrl && lastPageUrl !== window.location.href) {
         window.location.href = lastPageUrl;
         return;
@@ -218,7 +229,7 @@ function initializePageContent() {
     }
 
     // 设置页面标题
-    document.title = currentVideoTitle + ' - LibreTV播放器';
+    document.title = currentVideoTitle + ' - PlayAny TV';
     document.getElementById('videoTitle').textContent = currentVideoTitle;
 
     // 初始化播放器
@@ -1494,7 +1505,7 @@ function renderResourceInfoBar() {
 
     container.innerHTML = `
       <div class="resource-info-bar-left flex">
-        <span>${resourceName}</span>
+        <span>${escapeHtml(resourceName)}</span>
         <span class="resource-info-bar-videos">${currentEpisodes.length} 个视频</span>
       </div>
       <button class="resource-switch-btn flex" id="switchResourceBtn" onclick="showSwitchResourceModal()">
@@ -1515,7 +1526,7 @@ async function showSwitchResourceModal() {
     const modalTitle = document.getElementById('modalTitle');
     const modalContent = document.getElementById('modalContent');
 
-    modalTitle.innerHTML = `<span class="break-words">${currentVideoTitle}</span>`;
+    modalTitle.innerHTML = `<span class="break-words">${escapeHtml(currentVideoTitle)}</span>`;
     modalContent.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;grid-column:1/-1;">正在加载资源列表...</div>';
     modal.classList.remove('hidden');
 
@@ -1574,16 +1585,16 @@ async function showSwitchResourceModal() {
         
         html += `
             <div class="relative group ${isCurrentSource ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105 transition-transform'}" 
-                 ${!isCurrentSource ? `onclick="switchToResource('${sourceKey}', '${result.vod_id}')"` : ''}>
+                 ${!isCurrentSource ? `onclick="switchToResource(${jsArg(sourceKey)}, ${jsArg(result.vod_id)})"` : ''}>
                 <div class="aspect-[2/3] rounded-lg overflow-hidden bg-gray-800">
-                    <img src="${result.vod_pic}" 
-                         alt="${result.vod_name}"
+                    <img src="${escapeHtml(safeHttpUrl(result.vod_pic))}" 
+                         alt="${escapeHtml(result.vod_name)}"
                          class="w-full h-full object-cover"
                          onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3QgeD0iMyIgeT0iMyIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMiIgcnk9IjIiPjwvcmVjdD48cGF0aCBkPSJNMjEgMTV2NGEyIDIgMCAwIDEtMiAySDVhMiAyIDAgMCAxLTItMnYtNCI+PC9wYXRoPjxwb2x5bGluZSBwb2ludHM9IjE3IDggMTIgMyA3IDgiPjwvcG9seWxpbmU+PHBhdGggZD0iTTEyIDN2MTIiPjwvcGF0aD48L3N2Zz4='">
                 </div>
                 <div class="mt-1">
-                    <div class="text-xs font-medium text-gray-200 truncate">${result.vod_name}</div>
-                    <div class="text-[10px] text-gray-400">${sourceName}</div>
+                    <div class="text-xs font-medium text-gray-200 truncate">${escapeHtml(result.vod_name)}</div>
+                    <div class="text-[10px] text-gray-400">${escapeHtml(sourceName)}</div>
                 </div>
                 ${isCurrentSource ? `
                     <div class="absolute inset-0 flex items-center justify-center">

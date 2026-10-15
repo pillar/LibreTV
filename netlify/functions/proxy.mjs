@@ -150,6 +150,8 @@ async function processMasterPlaylist(url, content, recursionDepth) {
 
 
 // --- Netlify Handler ---
+const SAFE_PROXY_CONTENT_TYPE = /^(application\/(json|vnd\.apple\.mpegurl|x-mpegurl|octet-stream)|video\/|audio\/|image\/(?!svg)|text\/plain)/i;
+
 export const handler = async (event, context) => {
     console.log('--- Netlify Proxy Request ---');
     console.log('Time:', new Date().toISOString());
@@ -163,6 +165,9 @@ export const handler = async (event, context) => {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
         'Access-Control-Allow-Headers': '*', // Allow all headers client might send
+        // 代理响应不能被当成本站页面执行
+        'X-Content-Type-Options': 'nosniff',
+        'Content-Security-Policy': 'sandbox',
     };
 
     // --- Handle OPTIONS Preflight Request ---
@@ -246,6 +251,11 @@ export const handler = async (event, context) => {
                  }
              });
             netlifyHeaders['Cache-Control'] = `public, max-age=${CACHE_TTL}`; // Set our cache policy
+            // 只放行数据/媒体类型，其余按纯文本返回
+            Object.keys(netlifyHeaders).forEach(key => {
+                if (key.toLowerCase() === 'content-type') delete netlifyHeaders[key];
+            });
+            netlifyHeaders['Content-Type'] = SAFE_PROXY_CONTENT_TYPE.test(contentType) ? contentType : 'text/plain; charset=utf-8';
 
             return {
                 statusCode: 200,

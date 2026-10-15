@@ -23,6 +23,8 @@ const MEDIA_CONTENT_TYPES = ['video/', 'audio/', 'image/'];
  * 主要的 Pages Function 处理函数
  * 拦截发往 /proxy/* 的请求
  */
+const SAFE_PROXY_CONTENT_TYPE = /^(application\/(json|vnd\.apple\.mpegurl|x-mpegurl|octet-stream)|video\/|audio\/|image\/(?!svg)|text\/plain)/i;
+
 export async function onRequest(context) {
     const { request, env, next, waitUntil } = context; // next 和 waitUntil 可能需要
     const url = new URL(request.url);
@@ -97,6 +99,13 @@ export async function onRequest(context) {
         responseHeaders.set("Access-Control-Allow-Origin", "*"); // 允许任何来源访问
         responseHeaders.set("Access-Control-Allow-Methods", "GET, HEAD, POST, OPTIONS"); // 允许的方法
         responseHeaders.set("Access-Control-Allow-Headers", "*"); // 允许所有请求头
+        // 代理响应不能被当成本站页面执行：只放行数据/媒体类型，其余按纯文本返回，并禁止脚本执行
+        const contentType = responseHeaders.get("Content-Type") || "";
+        if (!SAFE_PROXY_CONTENT_TYPE.test(contentType)) {
+            responseHeaders.set("Content-Type", "text/plain; charset=utf-8");
+        }
+        responseHeaders.set("X-Content-Type-Options", "nosniff");
+        responseHeaders.set("Content-Security-Policy", "sandbox");
 
         // 处理 CORS 预检请求 (OPTIONS) - 放在这里确保所有响应都处理
          if (request.method === "OPTIONS") {
@@ -359,10 +368,10 @@ export async function onRequest(context) {
 
         let kvNamespace = null;
         try {
-            kvNamespace = env.LIBRETV_PROXY_KV; // 从环境获取 KV 命名空间 (变量名在 Cloudflare 设置)
+            kvNamespace = env.PLAYANY_PROXY_KV; // 从环境获取 KV 命名空间 (变量名在 Cloudflare 设置)
             if (!kvNamespace) throw new Error("KV 命名空间未绑定");
         } catch (e) {
-            logDebug(`KV 命名空间 'LIBRETV_PROXY_KV' 访问出错或未绑定: ${e.message}`);
+            logDebug(`KV 命名空间 'PLAYANY_PROXY_KV' 访问出错或未绑定: ${e.message}`);
             kvNamespace = null; // 确保设为 null
         }
 
@@ -429,10 +438,10 @@ export async function onRequest(context) {
         const cacheKey = `proxy_raw:${targetUrl}`; // 使用原始内容的缓存键
         let kvNamespace = null;
         try {
-            kvNamespace = env.LIBRETV_PROXY_KV;
+            kvNamespace = env.PLAYANY_PROXY_KV;
             if (!kvNamespace) throw new Error("KV 命名空间未绑定");
         } catch (e) {
-            logDebug(`KV 命名空间 'LIBRETV_PROXY_KV' 访问出错或未绑定: ${e.message}`);
+            logDebug(`KV 命名空间 'PLAYANY_PROXY_KV' 访问出错或未绑定: ${e.message}`);
             kvNamespace = null;
         }
 

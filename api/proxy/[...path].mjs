@@ -301,6 +301,8 @@ async function processMasterPlaylist(url, content, recursionDepth) {
 
 
 // --- Vercel Handler 函数 ---
+const SAFE_PROXY_CONTENT_TYPE = /^(application\/(json|vnd\.apple\.mpegurl|x-mpegurl|octet-stream)|video\/|audio\/|image\/(?!svg)|text\/plain)/i;
+
 export default async function handler(req, res) {
     // --- 记录请求开始 ---
     console.info('--- Vercel 代理请求开始 ---');
@@ -313,6 +315,9 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', '*'); // 允许所有请求头
+    // 代理响应不能被当成本站页面执行
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Security-Policy', 'sandbox');
 
     // --- 处理 OPTIONS 预检请求 ---
     if (req.method === 'OPTIONS') {
@@ -397,6 +402,8 @@ export default async function handler(req, res) {
                      res.setHeader(key, value); // 设置其他原始头
                  }
              });
+            // 只放行数据/媒体类型，其余按纯文本返回
+            res.setHeader('Content-Type', SAFE_PROXY_CONTENT_TYPE.test(contentType) ? contentType : 'text/plain; charset=utf-8');
             // 设置我们自己的缓存策略
             res.setHeader('Cache-Control', `public, max-age=${CACHE_TTL}`);
 

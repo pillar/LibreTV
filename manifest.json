@@ -1,18 +1,17 @@
 {
-    "name": "LibreTV",
-    "short_name": "LibreTV",
-    "description": "免费在线视频搜索与观看平台",
-    "start_url": ".",
-    "display": "standalone",
-    "background_color": "#0f1622",
-    "theme_color": "#000000",
-    "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "black",
-    "icons": [
-      {
-        "src": "image/logo-black.png",
-        "sizes": "512x512",
-        "type": "image/png"
-      }
-    ]
-  }
+  "name": "PlayAny TV",
+  "short_name": "PlayAny",
+  "description": "免费在线视频搜索与观看平台",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#07070c",
+  "theme_color": "#07070c",
+  "icons": [
+    {
+      "src": "image/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

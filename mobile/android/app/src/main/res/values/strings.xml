@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PlayAny TV</string>
+    <string name="title_activity_main">PlayAny TV</string>
+    <string name="package_name">app.playany.tv</string>
+    <string name="custom_url_scheme">app.playany.tv</string>
+</resources>

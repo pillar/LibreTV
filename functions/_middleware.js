@@ -1,7 +1,19 @@
 import { sha256 } from '../js/sha256.js';
 
+// 只通过自定义域名对外提供服务：项目默认地址 <项目>.pages.dev 301 跳转过去；
+// 各次部署和分支的预览地址（<hash>.<项目>.pages.dev）不受影响
+const CANONICAL_HOST = 'tv.playany.app';
+
 export async function onRequest(context) {
   const { request, env, next } = context;
+  const url = new URL(request.url);
+  if (url.hostname.endsWith('.pages.dev') && url.hostname.split('.').length === 3) {
+    url.protocol = 'https:';
+    url.hostname = CANONICAL_HOST;
+    url.port = '';
+    return Response.redirect(url.toString(), 301);
+  }
+
   const response = await next();
   const contentType = response.headers.get("content-type") || "";
   

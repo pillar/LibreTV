@@ -785,6 +785,21 @@ body #modalContent button.bg-blue-600 {
     color: #fff;
 }
 
+/* 播放页剧集按钮由 player.js 生成，带 Tailwind 的 !important 类（!bg-[#222] 等），这里同样用 !important 覆盖 */
+body .\!bg-\[\#222\] {
+    background-color: var(--fill) !important;
+    color: var(--ink);
+}
+
+body .hover\:\!bg-\[\#333\]:hover {
+    background-color: var(--fill-hover) !important;
+}
+
+body .\!border-\[\#333\],
+body .\!border-blue-500 {
+    border-color: transparent !important;
+}
+
 body .episode-active,
 body #episodesGrid button.episode-active {
     background: var(--blue) !important;
@@ -923,6 +938,68 @@ body .slider {
 
 body .switch input:checked + .slider {
     background: var(--green);
+}
+
+/* ---------- App 网络不可用提示（js/native-app.js） ---------- */
+.network-hint {
+    position: fixed;
+    z-index: 60;
+    top: calc(64px + env(safe-area-inset-top));
+    left: 50%;
+    width: calc(100% - 1.5rem);
+    max-width: 30rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.8rem 0.6rem 0.8rem 1rem;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.92);
+    -webkit-backdrop-filter: var(--material-blur);
+    backdrop-filter: var(--material-blur);
+    box-shadow: 0 0 0 0.5px var(--separator), 0 16px 40px -12px rgba(0, 0, 0, 0.3);
+    color: var(--ink);
+    transform: translateX(-50%);
+    animation: hint-in 0.4s var(--ease-out) backwards;
+}
+
+@keyframes hint-in {
+    from { opacity: 0; transform: translate(-50%, -12px); }
+    to { opacity: 1; transform: translateX(-50%); }
+}
+
+.network-hint-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.85rem;
+    line-height: 1.35;
+    color: var(--ink-2);
+}
+
+.network-hint-text strong {
+    color: var(--ink);
+    font-size: 0.95rem;
+}
+
+.network-hint-action {
+    flex-shrink: 0;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.network-hint-close {
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 999px;
+    background: var(--fill);
+    color: var(--ink-2);
+    font-size: 0.75rem;
 }
 
 /* ---------- 安全区 ---------- */

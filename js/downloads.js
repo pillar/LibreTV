@@ -200,6 +200,9 @@
         }
         running = null;
         save(true); emit();
+        if (store.items[next.id] && (next.status === 'done' || next.status === 'error')) {
+            window.dispatchEvent(new CustomEvent('offlinedownload', { detail: { item: { ...next }, ok: next.status === 'done' } }));
+        }
         pump();
     }
 

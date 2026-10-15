@@ -57,14 +57,29 @@
             }
         });
 
-        async function refreshUsage() {
+        // 底部统计：集数每次渲染都更新；占用空间需要读取文件列表，最多每 2 秒统计一次，且最后一次变化后一定补算
+        let usageText = '…';
+        let usageTimer = null;
+        function renderFooter() {
             const count = downloads.list().filter(item => item.status === 'done').length;
-            footer.textContent = `已下载 ${count} 集 · 占用 ${formatBytes(await downloads.usage())}`;
+            footer.textContent = `已下载 ${count} 集 · 占用 ${usageText}`;
+        }
+        async function refreshUsage() {
+            usageText = formatBytes(await downloads.usage());
+            renderFooter();
+        }
+        function scheduleUsage() {
+            if (usageTimer) return;
+            usageTimer = setTimeout(() => {
+                usageTimer = null;
+                if (panel.classList.contains('show')) refreshUsage();
+            }, 2000);
         }
 
         function render() {
             if (!panel.classList.contains('show')) return;
             const items = downloads.list();
+            renderFooter();
             if (!items.length) {
                 list.innerHTML = '<div class="downloads-empty">还没有下载内容<br>在播放页点「缓存」即可离线观看</div>';
                 return;
@@ -114,13 +129,15 @@
             }
         });
 
-        let lastRender = 0;
+        // 下载进度更新频繁，合并为每 300ms 最多渲染一次；最后一次变化（如下载完成）一定会渲染
+        let renderTimer = null;
         downloads.onChange(() => {
-            // 下载进度更新频繁，渲染限制为每 300ms 一次
-            const now = Date.now();
-            if (now - lastRender < 300) return;
-            lastRender = now;
-            render();
+            if (renderTimer) return;
+            renderTimer = setTimeout(() => {
+                renderTimer = null;
+                render();
+                if (panel.classList.contains('show')) scheduleUsage();
+            }, 300);
         });
     }
 
@@ -191,6 +208,13 @@
             }, picked);
         });
     }
+
+    // 每集下载结束时提示
+    window.addEventListener('offlinedownload', event => {
+        const { item, ok } = event.detail;
+        const name = `《${item.title}》第 ${item.episodeIndex + 1} 集`;
+        showToast(ok ? `${name}已下载完成` : `${name}下载失败：${item.error || '网络错误'}`, ok ? 'success' : 'error');
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
         setupDownloadsPanel();

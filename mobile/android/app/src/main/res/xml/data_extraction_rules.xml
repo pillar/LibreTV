@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12 起的云备份与设备迁移规则：离线缓存（files/downloads）不备份、不迁移 -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="downloads/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="downloads/" />
+    </device-transfer>
+</data-extraction-rules>

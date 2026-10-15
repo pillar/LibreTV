@@ -20,6 +20,18 @@ class MainViewController: CAPBridgeViewController {
 
     override func capacitorDidLoad() {
         bridge?.registerPluginInstance(ScreenLockPlugin())
+        excludeDownloadsFromBackup()
+    }
+
+    /// 离线缓存（js/downloads.js 写入 Library/downloads）可随时重新下载，不应占用 iCloud 备份空间。
+    /// Library 目录默认会被备份，这里给下载目录设置「不备份」，其中的文件随之排除。
+    private func excludeDownloadsFromBackup() {
+        guard var url = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("downloads", isDirectory: true) else { return }
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try? url.setResourceValues(values)
     }
 
     func setPlayerLocked(_ locked: Bool) {

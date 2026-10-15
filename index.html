@@ -15,10 +15,11 @@
     <!-- 登录状态由服务端写入（替换下方占位符）；App 内没有服务端，保持 null 表示无需密码 -->
     <script>window.__AUTH__ = /*AUTH*/null;</script>
     
-    <script src="libs/tailwindcss.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="css/theme.css">
+    <!-- 预编译的 Tailwind 样式（npm run build:css），放在最后以保持与原运行时注入相同的覆盖顺序 -->
+    <link rel="stylesheet" href="css/tailwind.css">
 </head>
 <body class="page-bg text-white">
     <!-- 顶部导航栏 -->

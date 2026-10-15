@@ -10,3 +10,5 @@ Dockerfile*
 docker-compose*.yml
 .docker/
 mobile/
+tailwind.config.js
+css/tailwind.src.css

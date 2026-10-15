@@ -65,6 +65,8 @@ npm run dev
 
 > 使用 `python -m http.server` 这类纯静态服务器时没有代理功能，搜索无法使用，请使用 Node.js 开发服务器。
 
+样式使用预编译的 Tailwind：修改了页面或脚本中的 Tailwind 类名后，运行 `npm run build:css` 重新生成 `css/tailwind.css` 并一起提交（部署时不会自动构建）。
+
 ## 📱 iOS / Android 客户端
 
 `mobile/` 目录是基于 Capacitor 的原生 App 工程（包名 `app.playany.tv`），内置全部前端页面，数据源请求走原生 HTTP，不需要自建服务器。构建方法和限制见 [mobile/README.md](mobile/README.md)。
@@ -105,7 +107,7 @@ npm run dev
 
 ## 🛠️ 技术栈
 
-- HTML + CSS + JavaScript（无构建步骤），Tailwind CSS
+- HTML + CSS + JavaScript，Tailwind CSS（预编译为 `css/tailwind.css`）
 - ArtPlayer + HLS.js 播放
 - Node.js / Cloudflare / Vercel / Netlify 服务端代理
 - Capacitor 8（iOS / Android 客户端）

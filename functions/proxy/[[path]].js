@@ -1,3 +1,5 @@
+import { isAllowedTarget } from '../../lib/target-guard.mjs';
+
 // functions/proxy/[[path]].js
 
 // --- 配置 (现在从 Cloudflare 环境变量读取) ---
@@ -435,6 +437,11 @@ export async function onRequest(context) {
         if (!targetUrl) {
             logDebug(`无效的代理请求路径: ${url.pathname}`);
             return createResponse("无效的代理请求。路径应为 /proxy/<经过编码的URL>", 400);
+        }
+
+        // 不允许访问本机、内网与云元数据等地址
+        if (!isAllowedTarget(targetUrl)) {
+            return createResponse("不允许访问的地址", 400);
         }
 
         logDebug(`收到代理请求: ${targetUrl}`);

@@ -4,8 +4,10 @@ import axios from 'axios';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import crypto from 'crypto';
 import dotenv from 'dotenv';
+import { authState, login, injectAuthState } from './lib/auth.mjs';
+import { isAllowedTarget, isPrivateAddress } from './lib/target-guard.mjs';
+import { lookup } from 'dns/promises';
 
 dotenv.config();
 
@@ -45,27 +47,42 @@ app.use((req, res, next) => {
   next();
 });
 
-function sha256Hash(input) {
-  return new Promise((resolve) => {
-    const hash = crypto.createHash('sha256');
-    hash.update(input);
-    resolve(hash.digest('hex'));
-  });
+// 会话校验所需的配置（与 Cloudflare 中间件共用 lib/auth.mjs）
+const authEnv = {
+  PASSWORD: config.password,
+  ADMINPASSWORD: config.adminpassword,
+  SESSION_SECRET: process.env.SESSION_SECRET || ''
+};
+
+// 页面写入当前登录状态；页面因人而异，禁止缓存
+async function renderPage(filePath, req, res) {
+  const content = fs.readFileSync(filePath, 'utf8');
+  res.set('Cache-Control', 'no-store');
+  return injectAuthState(content, await authState(authEnv, req.headers.cookie));
 }
 
-async function renderPage(filePath, password) {
-  let content = fs.readFileSync(filePath, 'utf8');
-  if (password !== '') {
-    const sha256 = await sha256Hash(password);
-    content = content.replace('{{PASSWORD}}', sha256);
+// POST /auth/login  { password, type: 'user' | 'admin' }
+app.post('/auth/login', express.json(), async (req, res) => {
+  const kind = req.body && req.body.type === 'admin' ? 'admin' : 'user';
+  const cookie = await login(authEnv, kind, req.body && req.body.password, req.secure);
+  if (!cookie) {
+    // 失败时稍作延迟，降低暴力猜测速度
+    await new Promise(resolve => setTimeout(resolve, 600));
+    return res.status(401).json({ ok: false });
   }
-  // 添加ADMINPASSWORD注入
-  if (config.adminpassword !== '') {
-      const adminSha256 = await sha256Hash(config.adminpassword);
-      content = content.replace('{{ADMINPASSWORD}}', adminSha256);
-  } 
-  return content;
-}
+  res.set('Set-Cookie', cookie).set('Cache-Control', 'no-store').json({ ok: true });
+});
+
+app.get('/auth/session', async (req, res) => {
+  res.set('Cache-Control', 'no-store').json(await authState(authEnv, req.headers.cookie));
+});
+
+// 代理只对已登录用户开放，避免被他人当作开放代理使用
+app.use('/proxy', async (req, res, next) => {
+  const state = await authState(authEnv, req.headers.cookie);
+  if (!state.authenticated) return res.status(401).set('Cache-Control', 'no-store').send('未登录');
+  next();
+});
 
 app.get(['/', '/index.html', '/player.html'], async (req, res) => {
   try {
@@ -79,8 +96,7 @@ app.get(['/', '/index.html', '/player.html'], async (req, res) => {
         break;
     }
     
-    const content = await renderPage(filePath, config.password);
-    res.send(content);
+    res.send(await renderPage(filePath, req, res));
   } catch (error) {
     console.error('页面渲染错误:', error);
     res.status(500).send('读取静态页面失败');
@@ -90,33 +106,19 @@ app.get(['/', '/index.html', '/player.html'], async (req, res) => {
 app.get('/s=:keyword', async (req, res) => {
   try {
     const filePath = path.join(__dirname, 'index.html');
-    const content = await renderPage(filePath, config.password);
-    res.send(content);
+    res.send(await renderPage(filePath, req, res));
   } catch (error) {
     console.error('搜索页面渲染错误:', error);
     res.status(500).send('读取静态页面失败');
   }
 });
 
-function isValidUrl(urlString) {
+// 代理目标检查：地址本身（lib/target-guard.mjs）+ 域名解析结果都不能是内网地址，防止通过代理访问内网
+async function isSafeTarget(urlString) {
+  if (!isAllowedTarget(urlString)) return false;
   try {
-    const parsed = new URL(urlString);
-    const allowedProtocols = ['http:', 'https:'];
-    
-    // 从环境变量获取阻止的主机名列表
-    const blockedHostnames = (process.env.BLOCKED_HOSTS || 'localhost,127.0.0.1,0.0.0.0,::1').split(',');
-    
-    // 从环境变量获取阻止的 IP 前缀
-    const blockedPrefixes = (process.env.BLOCKED_IP_PREFIXES || '192.168.,10.,172.').split(',');
-    
-    if (!allowedProtocols.includes(parsed.protocol)) return false;
-    if (blockedHostnames.includes(parsed.hostname)) return false;
-    
-    for (const prefix of blockedPrefixes) {
-      if (parsed.hostname.startsWith(prefix)) return false;
-    }
-    
-    return true;
+    const addresses = await lookup(new URL(urlString).hostname, { all: true });
+    return addresses.length > 0 && addresses.every(({ address }) => !isPrivateAddress(address));
   } catch {
     return false;
   }
@@ -140,8 +142,8 @@ app.get('/proxy/:encodedUrl', async (req, res) => {
     const targetUrl = decodeURIComponent(encodedUrl);
 
     // 安全验证
-    if (!isValidUrl(targetUrl)) {
-      return res.status(400).send('无效的 URL');
+    if (!(await isSafeTarget(targetUrl))) {
+      return res.status(400).send('不允许访问的地址');
     }
 
     log(`代理请求: ${targetUrl}`);
@@ -157,6 +159,12 @@ app.get('/proxy/:encodedUrl', async (req, res) => {
           url: targetUrl,
           responseType: 'stream',
           timeout: config.timeout,
+          maxRedirects: 5,
+          // 每次跳转前重新检查目标地址（跳转目标不能是内网）
+          beforeRedirect: (options) => {
+            const next = `${options.protocol}//${options.hostname}${options.port ? `:${options.port}` : ''}${options.path || ''}`;
+            if (!isAllowedTarget(next)) throw new Error('跳转到了不允许访问的地址');
+          },
           headers: {
             'User-Agent': config.userAgent,
             // 豆瓣图床校验 Referer，不带会返回 418

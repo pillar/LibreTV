@@ -226,7 +226,7 @@ function renderCustomAPIsList() {
         const textColorClass = api.isAdult ? 'text-pink-400' : 'text-white';
         const adultTag = api.isAdult ? '<span class="text-xs text-pink-400 mr-1">(18+)</span>' : '';
         // 新增 detail 地址显示
-        const detailLine = api.detail ? `<div class="text-xs text-gray-400 truncate">detail: ${api.detail}</div>` : '';
+        const detailLine = api.detail ? `<div class="text-xs text-gray-400 truncate">detail: ${escapeHtml(api.detail)}</div>` : '';
         apiItem.innerHTML = `
             <div class="flex items-center flex-1 min-w-0">
                 <input type="checkbox" id="custom_api_${index}" 
@@ -235,9 +235,9 @@ function renderCustomAPIsList() {
                        data-custom-index="${index}">
                 <div class="flex-1 min-w-0">
                     <div class="text-xs font-medium ${textColorClass} truncate">
-                        ${adultTag}${api.name}
+                        ${adultTag}${escapeHtml(api.name)}
                     </div>
-                    <div class="text-xs text-gray-500 truncate">${api.url}</div>
+                    <div class="text-xs text-gray-500 truncate">${escapeHtml(api.url)}</div>
                     ${detailLine}
                 </div>
             </div>
@@ -487,10 +487,8 @@ function toggleSettings(e) {
     const settingsPanel = document.getElementById('settingsPanel');
     if (!settingsPanel) return;
 
-    // 检查是否有管理员密码
-    const hasAdminPassword = window.__ENV__?.ADMINPASSWORD && 
-                           window.__ENV__.ADMINPASSWORD.length === 64 && 
-                           !/^0+$/.test(window.__ENV__.ADMINPASSWORD);
+    // 是否设置了管理员密码（登录状态由服务端写入页面）
+    const hasAdminPassword = isAdminProtected();
 
     if (settingsPanel.classList.contains('show')) {
         settingsPanel.classList.remove('show');
@@ -1221,10 +1219,8 @@ async function importConfigFromUrl() {
             const dataHash = await sha256(JSON.stringify(config.data));
             if (dataHash !== config.hash) throw '配置文件哈希值不匹配';
 
-            // 导入配置
-            for (let item in config.data) {
-                localStorage.setItem(item, config.data[item]);
-            }
+            // 导入配置（只接受白名单内且格式正确的设置项）
+            applyImportedConfig(config.data);
 
             showToast('配置文件导入成功，3 秒后自动刷新本页面。', 'success');
             setTimeout(() => {
@@ -1273,10 +1269,8 @@ async function importConfig() {
             const dataHash = await sha256(JSON.stringify(config.data));
             if (dataHash !== config.hash) throw '配置文件哈希值不匹配';
 
-            // 导入配置
-            for (let item in config.data) {
-                localStorage.setItem(item, config.data[item]);
-            }
+            // 导入配置（只接受白名单内且格式正确的设置项）
+            applyImportedConfig(config.data);
 
             showToast('配置文件导入成功，3 秒后自动刷新本页面。', 'success');
             setTimeout(() => {
@@ -1289,23 +1283,73 @@ async function importConfig() {
     });
 }
 
+// 可导入/导出的设置项
+const CONFIG_SETTING_KEYS = [
+    'selectedAPIs',
+    'customAPIs',
+    'yellowFilterEnabled',
+    'adFilteringEnabled',
+    'doubanEnabled',
+    'hasInitializedDefaults'
+];
+const CONFIG_BOOLEAN_KEYS = ['yellowFilterEnabled', 'adFilteringEnabled', 'doubanEnabled', 'hasInitializedDefaults'];
+
+function isHttpUrl(value) {
+    try {
+        return ['http:', 'https:'].includes(new URL(value).protocol);
+    } catch {
+        return false;
+    }
+}
+
+function parseJsonArray(value) {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) throw '配置项格式不正确';
+    return parsed;
+}
+
+/**
+ * 导入配置：只写入白名单内的设置项并校验格式，其余键一律忽略，
+ * 防止导入的配置文件写入任意 localStorage 数据（例如伪造的状态或可执行内容）。
+ */
+function applyImportedConfig(data) {
+    if (!data || typeof data !== 'object') throw '配置文件格式不正确';
+    const accepted = {};
+    const take = (key, normalize) => {
+        if (!(key in data)) return;
+        if (typeof data[key] !== 'string') throw `配置项 ${key} 格式不正确`;
+        accepted[key] = normalize(data[key]);
+    };
+
+    CONFIG_BOOLEAN_KEYS.forEach(key => take(key, value => {
+        if (value !== 'true' && value !== 'false') throw `配置项 ${key} 格式不正确`;
+        return value;
+    }));
+    take('selectedAPIs', value => JSON.stringify(parseJsonArray(value).filter(v => typeof v === 'string')));
+    take('customAPIs', value => JSON.stringify(parseJsonArray(value)
+        .filter(api => api && typeof api.name === 'string' && isHttpUrl(api.url))
+        .map(api => ({
+            name: api.name.slice(0, 50),
+            url: api.url,
+            detail: typeof api.detail === 'string' && isHttpUrl(api.detail) ? api.detail : '',
+            isAdult: api.isAdult === true
+        }))));
+    take('viewingHistory', value => JSON.stringify(parseJsonArray(value)
+        .filter(item => item && typeof item === 'object' && typeof item.title === 'string' && typeof item.url === 'string')));
+    take(SEARCH_HISTORY_KEY, value => JSON.stringify(parseJsonArray(value)
+        .filter(item => typeof item === 'string' || (item && typeof item.text === 'string'))));
+
+    Object.entries(accepted).forEach(([key, value]) => localStorage.setItem(key, value));
+}
+
 // 配置文件导出功能
 async function exportConfig() {
     // 存储配置数据
     const config = {};
     const items = {};
 
-    const settingsToExport = [
-        'selectedAPIs',
-        'customAPIs',
-        'yellowFilterEnabled',
-        'adFilteringEnabled',
-        'doubanEnabled',
-        'hasInitializedDefaults'
-    ];
-
     // 导出设置项
-    settingsToExport.forEach(key => {
+    CONFIG_SETTING_KEYS.forEach(key => {
         const value = localStorage.getItem(key);
         if (value !== null) {
             items[key] = value;

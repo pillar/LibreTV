@@ -125,7 +125,7 @@ export async function onRequest(context) {
     function createM3u8Response(content) {
         return createResponse(content, 200, {
             "Content-Type": "application/vnd.apple.mpegurl", // M3U8 的标准 MIME 类型
-            "Cache-Control": `public, max-age=${CACHE_TTL}` // 允许浏览器和CDN缓存
+            "Cache-Control": `private, max-age=${CACHE_TTL}` // 仅浏览器缓存：CDN 缓存会绕过登录校验
         });
     }
 
@@ -511,7 +511,7 @@ export async function onRequest(context) {
         } else {
             logDebug(`内容不是 M3U8 (类型: ${contentType})，直接返回: ${targetUrl}`);
             const finalHeaders = new Headers(responseHeaders);
-            finalHeaders.set('Cache-Control', `public, max-age=${CACHE_TTL}`);
+            finalHeaders.set('Cache-Control', `private, max-age=${CACHE_TTL}`);
             // 添加 CORS 头，确保非 M3U8 内容也能跨域访问（例如图片、字幕文件等）
             finalHeaders.set("Access-Control-Allow-Origin", "*");
             finalHeaders.set("Access-Control-Allow-Methods", "GET, HEAD, POST, OPTIONS");

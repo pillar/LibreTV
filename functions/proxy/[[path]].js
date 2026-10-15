@@ -188,8 +188,10 @@ export async function onRequest(context) {
             'Accept': '*/*',
             // 尝试传递一些原始请求的头信息
             'Accept-Language': request.headers.get('Accept-Language') || 'zh-CN,zh;q=0.9,en;q=0.8',
-            // 尝试设置 Referer 为目标网站的域名，或者传递原始 Referer
-            'Referer': request.headers.get('Referer') || new URL(targetUrl).origin
+            // 尝试设置 Referer 为目标网站的域名，或者传递原始 Referer；豆瓣图床只接受豆瓣的 Referer，否则返回 418
+            'Referer': /(^|\.)doubanio\.com$/.test(new URL(targetUrl).hostname)
+                ? 'https://movie.douban.com/'
+                : request.headers.get('Referer') || new URL(targetUrl).origin
         });
 
         try {
@@ -204,10 +206,13 @@ export async function onRequest(context) {
                  throw new Error(`HTTP error ${response.status}: ${response.statusText}. URL: ${targetUrl}. Body: ${errorBody.substring(0, 150)}`);
             }
 
-            // 读取响应内容为文本
-            const content = await response.text();
+            // 只有文本内容（m3u8、JSON 等）才解码成字符串；图片、视频分片等二进制内容原样转发，避免被 UTF-8 解码破坏
             const contentType = response.headers.get('Content-Type') || '';
-            logDebug(`请求成功: ${targetUrl}, Content-Type: ${contentType}, 内容长度: ${content.length}`);
+            const bytes = await response.arrayBuffer();
+            const isText = /mpegurl|^text\/|json|xml|javascript/i.test(contentType) ||
+                new TextDecoder().decode(bytes.slice(0, 7)) === '#EXTM3U';
+            const content = isText ? new TextDecoder().decode(bytes) : bytes;
+            logDebug(`请求成功: ${targetUrl}, Content-Type: ${contentType}, 内容长度: ${bytes.byteLength}`);
             return { content, contentType, responseHeaders: response.headers }; // 同时返回原始响应头
 
         } catch (error) {
@@ -476,8 +481,8 @@ export async function onRequest(context) {
         // --- 实际请求 ---
         const { content, contentType, responseHeaders } = await fetchContentWithType(targetUrl);
 
-        // --- 写入缓存 (KV) ---
-        if (kvNamespace) {
+        // --- 写入缓存 (KV)，只缓存文本内容 ---
+        if (kvNamespace && typeof content === 'string') {
              try {
                  const headersToCache = {};
                  responseHeaders.forEach((value, key) => { headersToCache[key.toLowerCase()] = value; });
@@ -492,7 +497,7 @@ export async function onRequest(context) {
         }
 
         // --- 处理响应 ---
-        if (isM3u8Content(content, contentType)) {
+        if (typeof content === 'string' && isM3u8Content(content, contentType)) {
             logDebug(`内容是 M3U8，开始处理: ${targetUrl}`);
             const processedM3u8 = await processM3u8Content(targetUrl, content, 0, env);
             return createM3u8Response(processedM3u8);

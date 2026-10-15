@@ -604,11 +604,11 @@ function initPlayer(videoUrl) {
 
     function hideControls() {
         if (isMouseActive || !isMouseOverPlayer) return;
-        art.controls.classList.add('art-controls-hide');
+        art.controls.show = false;
     }
 
     function showControls() {
-        art.controls.classList.remove('art-controls-hide');
+        art.controls.show = true;
     }
 
     function resetHideTimer() {
@@ -667,7 +667,7 @@ function initPlayer(videoUrl) {
 
     // 播放器加载完成后初始隐藏工具栏
     art.on('ready', () => {
-        art.controls.classList.add('art-controls-hide');
+        art.controls.show = false;
     });
 
     // 全屏模式处理

@@ -1080,6 +1080,7 @@ function saveToHistory() {
         url: `player.html?url=${encodeURIComponent(currentVideoUrl)}&title=${encodeURIComponent(currentVideoTitle)}&source=${encodeURIComponent(sourceName)}&source_code=${encodeURIComponent(sourceCode)}&id=${encodeURIComponent(id_from_params || '')}&index=${currentEpisodeIndex}&position=${Math.floor(currentPosition || 0)}`,
         episodeIndex: currentEpisodeIndex,
         sourceName: sourceName,
+        poster: localStorage.getItem('currentVideoPoster') || '',
         vod_id: id_from_params || '', // Store the ID from params as vod_id in history item
         sourceCode: sourceCode,
         showIdentifier: show_identifier_for_video_info, // Identifier for the show/series

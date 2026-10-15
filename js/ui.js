@@ -501,6 +501,7 @@ function deleteHistoryItem(encodedUrl) {
 
         // 保存回localStorage
         localStorage.setItem('viewingHistory', JSON.stringify(newHistory));
+        window.dispatchEvent(new Event('viewinghistorychange'));
 
         // 重新加载历史记录显示
         loadViewingHistory();
@@ -589,6 +590,7 @@ async function playFromHistory(url, title, episodeIndex, playbackPosition = 0) {
                         if (idx !== -1) {
                             history[idx] = { ...history[idx], ...historyItem }; // Merge, ensuring other properties are kept
                             localStorage.setItem('viewingHistory', JSON.stringify(history));
+                            window.dispatchEvent(new Event('viewinghistorychange'));
                             // console.log("观看历史中的剧集列表已更新。");
                         }
                     }
@@ -628,6 +630,8 @@ async function playFromHistory(url, title, episodeIndex, playbackPosition = 0) {
             localStorage.setItem('currentEpisodes', JSON.stringify(episodesList));
             // console.log(`已将剧集列表保存到localStorage，共 ${episodesList.length} 集`);
         }
+        // 恢复这部剧自己的海报，避免沿用上一部剧的海报
+        localStorage.setItem('currentVideoPoster', (historyItem && historyItem.poster) || '');
 
         // 保存当前页面URL作为返回地址
         let currentPath;
@@ -731,6 +735,7 @@ function addToViewingHistory(videoInfo) {
             existingItem.url = videoInfo.url || existingItem.url;
             existingItem.playbackPosition = videoInfo.playbackPosition > 10 ? videoInfo.playbackPosition : (existingItem.playbackPosition || 0);
             existingItem.duration = videoInfo.duration || existingItem.duration;
+            existingItem.poster = videoInfo.poster || existingItem.poster || '';
 
             if (videoInfo.episodes && Array.isArray(videoInfo.episodes) && videoInfo.episodes.length > 0) {
                 if (!existingItem.episodes ||
@@ -770,6 +775,7 @@ function addToViewingHistory(videoInfo) {
 
         // 保存到本地存储
         localStorage.setItem('viewingHistory', JSON.stringify(history));
+        window.dispatchEvent(new Event('viewinghistorychange'));
     } catch (e) {
         // console.error('保存观看历史失败:', e);
     }
@@ -779,6 +785,7 @@ function addToViewingHistory(videoInfo) {
 function clearViewingHistory() {
     try {
         localStorage.removeItem('viewingHistory');
+        window.dispatchEvent(new Event('viewinghistorychange'));
         loadViewingHistory(); // 重新加载空的历史记录
         showToast('观看历史已清空', 'success');
     } catch (e) {

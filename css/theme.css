@@ -659,6 +659,116 @@ body .douban-card .bg-black\/70 {
 #results > :nth-child(8), #douban-results > :nth-child(8) { animation-delay: 0.21s; }
 #results > :nth-child(n+9), #douban-results > :nth-child(n+9) { animation-delay: 0.24s; }
 
+/* ---------- 继续观看（js/continue-watching.js） ---------- */
+.continue-watching {
+    width: 100%;
+    max-width: 80rem;
+    margin: 1.5rem auto 0;
+    padding: 0 0.5rem;
+    animation: fade-up 0.5s var(--ease-out) backwards;
+}
+
+.continue-watching h2 {
+    margin-bottom: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.cw-row {
+    display: flex;
+    gap: 0.9rem;
+    overflow-x: auto;
+    padding: 0.25rem 0.25rem 0.75rem;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+}
+
+.cw-row::-webkit-scrollbar {
+    display: none;
+}
+
+.cw-card {
+    flex: 0 0 auto;
+    width: 8.5rem;
+    text-align: left;
+    scroll-snap-align: start;
+}
+
+.cw-poster {
+    position: relative;
+    display: block;
+    aspect-ratio: 2 / 3;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: linear-gradient(160deg, #5ac8fa, var(--blue));
+    box-shadow: var(--shadow-card);
+    transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out);
+}
+
+.cw-card:hover .cw-poster {
+    transform: scale(1.04);
+    box-shadow: var(--shadow-lift);
+}
+
+.cw-poster img {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cw-initial {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.cw-progress {
+    position: absolute;
+    z-index: 2;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.45);
+    overflow: hidden;
+}
+
+.cw-progress span {
+    display: block;
+    height: 100%;
+    background: #fff;
+}
+
+.cw-title {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cw-meta {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--ink-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* 分区标题 */
 body #doubanArea h2 {
     font-size: 1.5rem;

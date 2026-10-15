@@ -11,6 +11,7 @@ let currentEpisodeIndex = 0;
 let currentEpisodes = [];
 // 添加当前视频的标题
 let currentVideoTitle = '';
+let currentVideoPoster = ''; // 当前详情的海报，用于观看历史与「继续观看」
 // 全局变量用于倒序状态
 let episodesReversed = false;
 
@@ -938,6 +939,7 @@ async function showDetails(id, vod_name, sourceCode) {
 
             currentEpisodes = data.episodes;
             currentEpisodeIndex = 0;
+            currentVideoPoster = safeHttpUrl(data.videoInfo && data.videoInfo.cover);
 
             modalContent.innerHTML = `
                 ${detailInfoHtml}
@@ -1006,6 +1008,7 @@ function playVideo(url, vod_name, sourceCode, episodeIndex = 0, vodId = '') {
     // 保存当前状态到localStorage
     try {
         localStorage.setItem('currentVideoTitle', vod_name || '未知视频');
+        localStorage.setItem('currentVideoPoster', currentVideoPoster);
         localStorage.setItem('currentEpisodes', JSON.stringify(currentEpisodes));
         localStorage.setItem('currentEpisodeIndex', episodeIndex);
         localStorage.setItem('currentSourceCode', sourceCode || '');

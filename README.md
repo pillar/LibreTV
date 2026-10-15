@@ -31,10 +31,6 @@ PlayAny TV 是一个轻量级的在线视频搜索与观看平台，聚合多个
 5. 可选：绑定名为 `PLAYANY_PROXY_KV` 的 KV 命名空间，用于缓存代理结果；
 6. 保存并部署。
 
-### Vercel / Netlify
-
-导入仓库、使用默认设置，在环境变量中添加 `PASSWORD`（可选 `ADMINPASSWORD`）后部署即可。
-
 ### Docker
 
 ```bash
@@ -109,7 +105,7 @@ npm run dev
 
 - HTML + CSS + JavaScript，Tailwind CSS（预编译为 `css/tailwind.css`）
 - ArtPlayer + HLS.js 播放
-- Node.js / Cloudflare / Vercel / Netlify 服务端代理
+- 服务端代理：Cloudflare Pages Functions（线上）或 Node.js `server.mjs`（Docker / 本地）
 - Capacitor 8（iOS / Android 客户端）
 
 ## ⚠️ 免责声明

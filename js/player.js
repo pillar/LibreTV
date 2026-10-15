@@ -259,11 +259,6 @@ function initializePageContent() {
     // 更新排序按钮状态
     updateOrderButton();
 
-    // 添加对进度条的监听，确保点击准确跳转
-    setTimeout(() => {
-        setupProgressBarPreciseClicks();
-    }, 1000);
-
     // 添加键盘快捷键事件监听
     document.addEventListener('keydown', handleKeyboardShortcuts);
 
@@ -634,9 +629,6 @@ function initPlayer(videoUrl) {
             progressUrl = currentVideoUrl;
         }
 
-        // 设置进度条点击监听
-        setupProgressBarPreciseClicks();
-
         // 视频加载成功后，在稍微延迟后将其添加到观看历史
         setTimeout(saveToHistory, 3000);
 
@@ -998,75 +990,6 @@ function updateOrderButton() {
     }
 }
 
-// 设置进度条准确点击处理
-function setupProgressBarPreciseClicks() {
-    // 查找DPlayer的进度条元素
-    const progressBar = document.querySelector('.dplayer-bar-wrap');
-    if (!progressBar || !art || !art.video) return;
-
-    // 移除可能存在的旧事件监听器
-    progressBar.removeEventListener('mousedown', handleProgressBarClick);
-
-    // 添加新的事件监听器
-    progressBar.addEventListener('mousedown', handleProgressBarClick);
-
-    // 在移动端也添加触摸事件支持
-    progressBar.removeEventListener('touchstart', handleProgressBarTouch);
-    progressBar.addEventListener('touchstart', handleProgressBarTouch);
-
-    // 处理进度条点击
-    function handleProgressBarClick(e) {
-        if (!art || !art.video) return;
-
-        // 计算点击位置相对于进度条的比例
-        const rect = e.currentTarget.getBoundingClientRect();
-        const percentage = (e.clientX - rect.left) / rect.width;
-
-        // 计算点击位置对应的视频时间
-        const duration = art.video.duration;
-        let clickTime = percentage * duration;
-
-        // 处理视频接近结尾的情况
-        if (duration - clickTime < 1) {
-            // 如果点击位置非常接近结尾，稍微往前移一点
-            clickTime = Math.min(clickTime, duration - 1.5);
-
-        }
-
-        // 记录用户点击的位置
-        userClickedPosition = clickTime;
-
-        // 阻止默认事件传播，避免DPlayer内部逻辑将视频跳至末尾
-        e.stopPropagation();
-
-        // 直接设置视频时间
-        art.seek(clickTime);
-    }
-
-    // 处理移动端触摸事件
-    function handleProgressBarTouch(e) {
-        if (!art || !art.video || !e.touches[0]) return;
-
-        const touch = e.touches[0];
-        const rect = e.currentTarget.getBoundingClientRect();
-        const percentage = (touch.clientX - rect.left) / rect.width;
-
-        const duration = art.video.duration;
-        let clickTime = percentage * duration;
-
-        // 处理视频接近结尾的情况
-        if (duration - clickTime < 1) {
-            clickTime = Math.min(clickTime, duration - 1.5);
-        }
-
-        // 记录用户点击的位置
-        userClickedPosition = clickTime;
-
-        e.stopPropagation();
-        art.seek(clickTime);
-    }
-}
-
 // 在播放器初始化后添加视频到历史记录
 function saveToHistory() {
     // 确保 currentEpisodes 非空且有当前视频URL
@@ -1285,15 +1208,8 @@ function setupLongPressSpeedControl() {
         // 检测是否为移动设备
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        // 只在移动设备上禁用右键
-        if (isMobile) {
-            const dplayerMenu = document.querySelector(".dplayer-menu");
-            const dplayerMask = document.querySelector(".dplayer-mask");
-            if (dplayerMenu) dplayerMenu.style.display = "none";
-            if (dplayerMask) dplayerMask.style.display = "none";
-            return false;
-        }
-        return true; // 在桌面设备上允许右键菜单
+        // 只在移动设备上禁用右键（避免长按倍速时弹出系统菜单），桌面设备上允许右键菜单
+        return !isMobile;
     };
 
     // 触摸开始事件

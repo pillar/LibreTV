@@ -323,7 +323,8 @@
             const params = new URLSearchParams({ url: episodes[index], title: item.title, index: String(index), offline: '1' });
             if (series.vodId) params.set('id', series.vodId);
             if (series.sourceCode) params.set('source', series.sourceCode);
-            window.location.href = `player.html?${params.toString()}`;
+            // 始终在顶层页面打开，iframe 内拿不到原生能力
+            (window.top || window).location.href = `player.html?${params.toString()}`;
         }
     };
 

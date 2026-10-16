@@ -1074,6 +1074,11 @@ function playVideo(url, vod_name, sourceCode, episodeIndex = 0, vodId = '') {
 
 // 弹出播放器页面
 function showVideoPlayer(url) {
+    // App 内 Capacitor 只向主页面注入原生桥，iframe 里的播放页会退化成网页版，所以直接跳转
+    if (document.documentElement.classList.contains('native-app')) {
+        window.location.href = url;
+        return;
+    }
     // 在打开播放器前，隐藏详情弹窗
     const detailModal = document.getElementById('modal');
     if (detailModal) {

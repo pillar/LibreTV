@@ -2,10 +2,18 @@
 // 两者共用 lib/handler.mjs，但静态文件、限流与运行环境不同，都需要验证。
 // 数据源与豆瓣接口在测试中用模拟数据（见 tests/helpers.js），不依赖外部网站。
 import { defineConfig } from '@playwright/test';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const NODE_PORT = 8099;
 const WORKER_PORT = 8787;
 const PASSWORDS = { PASSWORD: 'test-pass', ADMINPASSWORD: 'admin-pass' };
+// 测试在一分钟内会多次登录，放宽登录限流：Node 版运行全部测试，几乎不限；Worker 只运行接口测试，
+// 保留较低的上限，由 rate-limit.spec.js 验证限流本身
+const TEST_LOGIN_LIMIT = 20;
+// wrangler dev 默认把 Durable Object（限流计数）保存在 .wrangler/state，每次测试用新的目录，避免上次的计数残留
+const WORKER_STATE = process.env.PLAYANY_WORKER_STATE || (process.env.PLAYANY_WORKER_STATE = mkdtempSync(join(tmpdir(), 'playany-wrangler-')));
 
 export default defineConfig({
     testDir: './tests',
@@ -43,11 +51,10 @@ export default defineConfig({
             command: 'node server.mjs',
             url: `http://localhost:${NODE_PORT}`,
             reuseExistingServer: false,
-            // 测试在一分钟内会登录多次，放宽 Node 版的登录限流
             env: { PORT: String(NODE_PORT), ...PASSWORDS, LOGIN_RATE_LIMIT: '1000' }
         },
         {
-            command: `npx wrangler dev --port ${WORKER_PORT} --var PASSWORD:${PASSWORDS.PASSWORD} --var ADMINPASSWORD:${PASSWORDS.ADMINPASSWORD}`,
+            command: `npx wrangler dev --port ${WORKER_PORT} --persist-to ${WORKER_STATE} --var PASSWORD:${PASSWORDS.PASSWORD} --var ADMINPASSWORD:${PASSWORDS.ADMINPASSWORD} --var LOGIN_RATE_LIMIT:${TEST_LOGIN_LIMIT}`,
             url: `http://localhost:${WORKER_PORT}`,
             reuseExistingServer: false,
             timeout: 120_000,

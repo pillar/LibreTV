@@ -3,10 +3,11 @@
 import { DurableObject } from 'cloudflare:workers';
 import { handleRequest } from './lib/handler.mjs';
 
-// 限流：登录每个 IP 每分钟 10 次（防止猜密码），代理每分钟 300 次（防止被当作通用代理滥用），与 server.mjs 一致
+// 限流：登录每个 IP 每分钟 10 次（防止猜密码），代理每分钟 300 次（防止被当作通用代理滥用），与 server.mjs 一致。
+// 可用变量 LOGIN_RATE_LIMIT / PROXY_RATE_LIMIT 调整（端到端测试中放宽登录次数）
 const LIMITS = {
-    login: { limit: 10, period: 60 },
-    proxy: { limit: 300, period: 60 }
+    login: { variable: 'LOGIN_RATE_LIMIT', limit: 10, period: 60 },
+    proxy: { variable: 'PROXY_RATE_LIMIT', limit: 300, period: 60 }
 };
 
 /**
@@ -25,8 +26,10 @@ export class RateLimiter extends DurableObject {
     }
 }
 
-function limiter(namespace, name) {
-    const { limit, period } = LIMITS[name];
+function limiter(env, name) {
+    const { variable, period } = LIMITS[name];
+    const limit = Number(env[variable]) || LIMITS[name].limit;
+    const namespace = env.RATE_LIMITER;
     return {
         async limit({ key }) {
             const stub = namespace.get(namespace.idFromName(`${name}:${key}`));
@@ -39,8 +42,8 @@ export default {
     fetch(request, env, ctx) {
         return handleRequest(request, {
             ...env,
-            LOGIN_LIMITER: limiter(env.RATE_LIMITER, 'login'),
-            PROXY_LIMITER: limiter(env.RATE_LIMITER, 'proxy')
+            LOGIN_LIMITER: limiter(env, 'login'),
+            PROXY_LIMITER: limiter(env, 'proxy')
         }, {
             serveAsset: req => env.ASSETS.fetch(req),
             clientIp: request.headers.get('CF-Connecting-IP') || '',

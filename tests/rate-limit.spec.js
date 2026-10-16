@@ -1,9 +1,9 @@
-// 登录限流（Worker 的 RateLimiter：每个 IP 每分钟 10 次），见 worker.js
+// 登录限流（Worker 的 RateLimiter，见 worker.js；测试中放宽为每分钟 20 次，见 playwright.config.js）
 import { test, expect } from '@playwright/test';
 
 test('连续登录失败超过限制后返回 429，页面提示稍后再试', async ({ page }) => {
     let status = 0;
-    for (let i = 0; i < 12 && status !== 429; i++) {
+    for (let i = 0; i < 25 && status !== 429; i++) {
         status = (await page.request.post('/auth/login', { data: { password: 'wrong-' + i } })).status();
     }
     expect(status).toBe(429);

@@ -91,3 +91,19 @@ test('先返回的数据源先显示，慢的数据源返回后追加并更新�
     await expect(page.locator('#searchResultsCount')).toHaveText('2');
     await expect(page.locator('#searchProgress')).toHaveText('');
 });
+
+test('详情优先使用 m3u8 播放源（第一个播放源只是网页链接时）', async ({ page }) => {
+    await mockSources(page, {
+        search: () => [vod('m1', '多源剧')],
+        detail: id => vod(id, '多源剧', {
+            vod_play_url: '第1集$https://share.example/a#第2集$https://share.example/b$$$第1集$https://media.example/1.m3u8#第2集$https://media.example/2.m3u8'
+        })
+    });
+    await page.goto('/');
+    await page.fill('#searchInput', '多源');
+    await page.click('button.search-go');
+    await page.locator('#results .card-hover').first().click();
+    const episodes = page.locator('#episodesGrid [data-action="playVideo"]');
+    await expect(episodes).toHaveCount(2);
+    expect(await episodes.first().getAttribute('data-args')).toContain('https://media.example/1.m3u8');
+});

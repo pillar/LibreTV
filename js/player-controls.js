@@ -113,7 +113,7 @@ function toggleControlsLock() {
     setControlsLocked(!controlsLocked);
 }
 
-// App 返回键（Android）：锁定时忽略，全屏时先退出全屏
+// App 返回键（Android）：锁定时忽略，全屏时先退出全屏，否则回到上一页
 window.addEventListener('nativeback', event => {
     if (controlsLocked) {
         event.preventDefault();
@@ -121,5 +121,10 @@ window.addEventListener('nativeback', event => {
     } else if (art && art.fullscreenWeb) {
         event.preventDefault();
         art.fullscreenWeb = false;
+    } else {
+        // 与页面上的「上一页」相同：回到来源页面。（Android WebView 在播放页报告无法后退，
+        // 交给原生处理会直接退出 App）
+        event.preventDefault();
+        goBack();
     }
 });

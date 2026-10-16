@@ -61,17 +61,21 @@ async function fetchDetailPage(source, id, sourceCode) {
     };
 }
 
-/** 从接口的 vod_play_url 中取第一个播放源的各集地址 */
+/**
+ * 从接口的 vod_play_url 中取各集地址。一部剧可能有多个播放源（以 $$$ 分隔），
+ * 有的只是网页分享链接，优先选用全部为 m3u8 的播放源，否则用第一个。
+ */
 function parsePlayUrls(videoDetail) {
     if (videoDetail.vod_play_url) {
-        const mainSource = videoDetail.vod_play_url.split('$$$')[0];
-        const episodes = mainSource.split('#')
+        const sources = videoDetail.vod_play_url.split('$$$').map(source => source.split('#')
             .map(ep => {
                 const parts = ep.split('$');
-                return parts.length > 1 ? parts[1] : '';
+                return parts.length > 1 ? parts[1].trim() : '';
             })
-            .filter(url => url.startsWith('http://') || url.startsWith('https://'));
-        if (episodes.length) return episodes;
+            .filter(url => url.startsWith('http://') || url.startsWith('https://')));
+        const episodes = sources.find(urls => urls.length && urls.every(url => /\.m3u8(\?|$)/i.test(url)))
+            || sources.find(urls => urls.length);
+        if (episodes) return episodes;
     }
     // 没有播放地址时，尝试从简介中查找 m3u8 链接
     const matches = (videoDetail.vod_content || '').match(M3U8_PATTERN) || [];
@@ -88,8 +92,15 @@ async function fetchVideoDetail(id, sourceCode) {
     if (!id || !/^[\w-]+$/.test(String(id))) throw new Error('无效的视频ID格式');
     const source = resolveDetailSource(sourceCode || '');
 
-    // 配置了详情页地址的数据源，从详情页提取播放地址
-    if (source.detailPage) return fetchDetailPage(source, id, sourceCode);
+    // 配置了详情页地址的数据源，先从详情页提取播放地址；详情页取不到（如被站点防火墙拦截）时改用接口
+    if (source.detailPage) {
+        try {
+            const fromPage = await fetchDetailPage(source, id, sourceCode);
+            if (fromPage.episodes.length) return fromPage;
+        } catch (error) {
+            console.warn(`${source.name} 详情页获取失败，改用接口:`, error);
+        }
+    }
 
     const detailUrl = `${source.api}${API_CONFIG.detail.path}${id}`;
     const response = await fetch(PROXY_URL + encodeURIComponent(detailUrl), {

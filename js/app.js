@@ -243,8 +243,8 @@ function renderCustomAPIsList() {
                 </div>
             </div>
             <div class="flex items-center">
-                <button class="text-blue-500 hover:text-blue-700 text-xs px-1" onclick="editCustomApi(${index})">✎</button>
-                <button class="text-red-500 hover:text-red-700 text-xs px-1" onclick="removeCustomApi(${index})">✕</button>
+                <button class="text-blue-500 hover:text-blue-700 text-xs px-1" ${actionAttrs('editCustomApi', index)}>✎</button>
+                <button class="text-red-500 hover:text-red-700 text-xs px-1" ${actionAttrs('removeCustomApi', index)}>✕</button>
             </div>
         `;
         container.appendChild(apiItem);
@@ -269,8 +269,8 @@ function editCustomApi(index) {
         form.classList.remove('hidden');
         const buttonContainer = form.querySelector('div:last-child');
         buttonContainer.innerHTML = `
-            <button onclick="updateCustomApi(${index})" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">更新</button>
-            <button onclick="cancelEditCustomApi()" class="bg-[#444] hover:bg-[#555] text-white px-3 py-1 rounded text-xs">取消</button>
+            <button ${actionAttrs('updateCustomApi', index)} class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">更新</button>
+            <button data-action="cancelEditCustomApi" class="bg-[#444] hover:bg-[#555] text-white px-3 py-1 rounded text-xs">取消</button>
         `;
     }
 }
@@ -330,8 +330,8 @@ function restoreAddCustomApiButtons() {
     const form = document.getElementById('addCustomApiForm');
     const buttonContainer = form.querySelector('div:last-child');
     buttonContainer.innerHTML = `
-        <button onclick="addCustomApi()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">添加</button>
-        <button onclick="cancelAddCustomApi()" class="bg-[#444] hover:bg-[#555] text-white px-3 py-1 rounded text-xs">取消</button>
+        <button data-action="addCustomApi" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">添加</button>
+        <button data-action="cancelAddCustomApi" class="bg-[#444] hover:bg-[#555] text-white px-3 py-1 rounded text-xs">取消</button>
     `;
 }
 
@@ -519,8 +519,11 @@ function setupEventListeners() {
         }
     });
 
-    // 点击外部关闭设置面板和历史记录面板
+    // 点击外部关闭设置面板和历史记录面板（导航栏上打开面板的按钮除外）
     document.addEventListener('click', function (e) {
+        if (e.target.closest('[data-action="toggleSettings"], [data-action="toggleHistory"]')) return;
+        // 面板内的操作可能重新渲染列表（如删除历史记录），被点击的元素已不在页面上，不算点击外部
+        if (!e.target.isConnected) return;
         // 关闭设置面板
         const settingsPanel = document.querySelector('#settingsPanel.show');
         const settingsButton = document.querySelector('#settingsPanel .close-btn');
@@ -677,13 +680,13 @@ function renderResultCard(item, resultIndex) {
 
     return `
         <div class="card-hover bg-[#111] rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-[1.02] h-full shadow-sm hover:shadow-md"
-             onclick="openSearchResult(${resultIndex})">
+             ${actionAttrs('openSearchResult', resultIndex)}>
             <div class="flex h-full">
                 ${hasCover ? `
                 <div class="relative flex-shrink-0 search-card-img-container">
                     <img src="${escapeHtml(coverUrl)}" alt="${safeName}"
                          class="h-full w-full object-cover transition-transform hover:scale-110"
-                         onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450?text=无封面'; this.classList.add('object-contain');"
+                         data-fallback="placeholder"
                          loading="lazy">
                     <div class="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent"></div>
                 </div>` : ''}
@@ -826,7 +829,10 @@ function hookInput() {
     // 初始化输入框值为空字符串（避免初始值为 undefined）
     input.value = '';
 }
-document.addEventListener('DOMContentLoaded', hookInput);
+document.addEventListener('DOMContentLoaded', () => {
+    hookInput();
+    document.getElementById('searchInput').addEventListener('input', toggleClearButton);
+});
 
 // 显示详情 - 修改为支持自定义API
 // ---- 搜索结果合并 ----
@@ -945,7 +951,7 @@ async function showDetails(id, vod_name, sourceCode) {
                 ${detailInfoHtml}
                 <div class="flex flex-wrap items-center justify-between mb-4 gap-2">
                     <div class="flex items-center gap-2">
-                        <button id="episodeOrderToggle" onclick="toggleEpisodeOrder(${jsArg(sourceCode)}, ${jsArg(id)})" 
+                        <button id="episodeOrderToggle" ${actionAttrs('toggleEpisodeOrder', sourceCode, id)} 
                                 class="px-3 py-1.5 bg-[#333] hover:bg-[#444] border border-[#444] rounded text-sm transition-colors flex items-center gap-1">
                             <svg class="w-4 h-4 transform ${episodesReversed ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
@@ -954,7 +960,7 @@ async function showDetails(id, vod_name, sourceCode) {
                         </button>
                         <span class="text-gray-400 text-sm">共 ${data.episodes.length} 集</span>
                     </div>
-                    <button onclick="copyLinks()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors">
+                    <button data-action="copyLinks" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors">
                         复制链接
                     </button>
                 </div>
@@ -1103,7 +1109,7 @@ function renderEpisodes(vodName, sourceCode, vodId) {
         // 根据倒序状态计算真实的剧集索引
         const realIndex = episodesReversed ? currentEpisodes.length - 1 - index : index;
         return `
-            <button id="episode-${realIndex}" onclick="playVideo(${jsArg(episode)}, ${jsArg(vodName)}, ${jsArg(sourceCode)}, ${realIndex}, ${jsArg(vodId)})" 
+            <button id="episode-${realIndex}" ${actionAttrs('playVideo', episode, vodName, sourceCode, realIndex, vodId)} 
                     class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors text-center episode-btn">
                 ${realIndex + 1}
             </button>

@@ -29,7 +29,7 @@
                 <button type="button" class="cw-card" data-index="${index}" title="${escapeHtml(item.title)}">
                     <span class="cw-poster">
                         ${poster
-                            ? `<img src="${escapeHtml(poster)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`
+                            ? `<img src="${escapeHtml(poster)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-fallback="remove">`
                             : ''}
                         <span class="cw-initial">${escapeHtml(item.title.trim().charAt(0))}</span>
                         <span class="cw-progress"><span style="width:${percent}%"></span></span>

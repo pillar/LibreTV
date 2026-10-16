@@ -437,7 +437,7 @@ function renderRecommend(tag, pageLimit, pageStart) {
             container.innerHTML = `
                 <div class="col-span-full text-center py-8">
                     <div class="text-red-400">❌ 获取豆瓣数据失败</div>
-                    <button type="button" class="douban-retry mt-3" onclick="renderRecommend(doubanCurrentTag, doubanPageSize, doubanPageStart)">重试</button>
+                    <button type="button" class="douban-retry mt-3" data-action="retryDoubanRecommend">重试</button>
                 </div>
             `;
         });
@@ -464,6 +464,11 @@ async function fetchDoubanViaProxy(url) {
     } finally {
         clearTimeout(timeoutId);
     }
+}
+
+// 加载失败后的「重试」按钮
+function retryDoubanRecommend() {
+    renderRecommend(doubanCurrentTag, doubanPageSize, doubanPageStart);
 }
 
 async function fetchDoubanData(url) {
@@ -538,7 +543,7 @@ function renderDoubanCards(data, container) {
             
             // 为不同设备优化卡片布局
             card.innerHTML = `
-                <div class="douban-cover-wrap relative w-full aspect-[2/3] overflow-hidden cursor-pointer" onclick="fillAndSearchWithDouban(${jsArg(item.title)})">
+                <div class="douban-cover-wrap relative w-full aspect-[2/3] overflow-hidden cursor-pointer" ${actionAttrs('fillAndSearchWithDouban', item.title)}>
                     <img src="${escapeHtml(proxiedCoverUrl)}" alt="${safeTitle}"
                         class="douban-cover w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                         loading="lazy" decoding="async">
@@ -547,13 +552,13 @@ function renderDoubanCards(data, container) {
                         <span class="text-yellow-400">★</span> ${safeRate}
                     </div>
                     <div class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-sm hover:bg-[#333] transition-colors">
-                        <a href="${escapeHtml(doubanUrl)}" target="_blank" rel="noopener noreferrer" title="在豆瓣查看" onclick="event.stopPropagation();">
+                        <a href="${escapeHtml(doubanUrl)}" target="_blank" rel="noopener noreferrer" title="在豆瓣查看">
                             🔗
                         </a>
                     </div>
                 </div>
                 <div class="p-2 text-center bg-[#111]">
-                    <button onclick="fillAndSearchWithDouban(${jsArg(item.title)})" 
+                    <button ${actionAttrs('fillAndSearchWithDouban', item.title)} 
                             class="text-sm font-medium text-white truncate w-full hover:text-pink-400 transition"
                             title="${safeTitle}">
                         ${safeTitle}

@@ -1,5 +1,15 @@
 // 全局常量配置
-const PROXY_URL = '/proxy/';    // Cloudflare Pages Functions（functions/proxy）或 server.mjs 提供；App 内由 js/native-app.js 改为原生请求
+const PROXY_URL = '/proxy/';    // 由服务端（lib/handler.mjs）提供；App 内由 js/native-app.js 改为原生请求
+
+// 服务端写入页面的登录状态（<script type="application/json" id="auth-state">，见 lib/auth.mjs）；
+// 没有服务端时（App 或纯静态预览）保留占位符，解析失败即为 null，视为无需密码
+window.__AUTH__ = (() => {
+    try {
+        return JSON.parse(document.getElementById('auth-state').textContent);
+    } catch {
+        return null;
+    }
+})();
 // const HOPLAYER_URL = 'https://hoplayer.com/index.html';
 const SEARCH_HISTORY_KEY = 'videoSearchHistory';
 const MAX_HISTORY_ITEMS = 5;

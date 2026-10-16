@@ -177,7 +177,7 @@
 
     // ---- 首页详情：缓存全部剧集 ----
     function attachToDetail(container, series) {
-        const copyButton = container.querySelector('button[onclick="copyLinks()"]');
+        const copyButton = container.querySelector('[data-action="copyLinks"]');
         if (!copyButton || !series.episodes || !series.episodes.length) return;
         const wrapper = document.createElement('div');
         wrapper.className = 'flex items-center gap-2';

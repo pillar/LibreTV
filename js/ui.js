@@ -10,11 +10,6 @@ function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
-// 生成可放入内联事件属性（onclick="fn(...)"）的 JS 字符串字面量，例如 onclick="play(${jsArg(url)})"
-function jsArg(value) {
-    return escapeHtml(JSON.stringify(String(value ?? '')));
-}
-
 // 只允许 http(s) 地址，用于 img src / a href 等来自第三方数据的链接
 function safeHttpUrl(value) {
     try {
@@ -246,7 +241,7 @@ function renderSearchHistory() {
         <div class="flex justify-between items-center w-full mb-2">
             <div class="text-gray-500">最近搜索:</div>
             <button id="clearHistoryBtn" class="text-gray-500 hover:text-white transition-colors"
-                    onclick="clearSearchHistory()" aria-label="清除搜索历史">
+                    data-action="clearSearchHistory" aria-label="清除搜索历史">
                 清除搜索历史
             </button>
         </div>
@@ -447,8 +442,8 @@ function loadViewingHistory() {
 
         // 构建历史记录项HTML，添加删除按钮，需要放在position:relative的容器中
         return `
-            <div class="history-item cursor-pointer relative group" onclick="playFromHistory(${jsArg(item.url)}, ${jsArg(item.title)}, ${episodeIndex}, ${playbackPosition})">
-                <button onclick="event.stopPropagation(); deleteHistoryItem(${jsArg(encodeURIComponent(item.url))})"
+            <div class="history-item cursor-pointer relative group" ${actionAttrs('playFromHistory', item.url, item.title, episodeIndex, playbackPosition)}>
+                <button ${actionAttrs('deleteHistoryItem', encodeURIComponent(item.url))}
                         class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-400 p-1 rounded-full hover:bg-gray-800 z-10"
                         title="删除记录">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -792,20 +787,6 @@ toggleSettings = function(e) {
     }
 };
 
-// 点击外部关闭历史面板
-document.addEventListener('DOMContentLoaded', function() {
-    document.addEventListener('click', function(e) {
-        const historyPanel = document.getElementById('historyPanel');
-        const historyButton = document.querySelector('button[onclick="toggleHistory(event)"]');
-
-        if (historyPanel && historyButton &&
-            !historyPanel.contains(e.target) &&
-            !historyButton.contains(e.target) &&
-            historyPanel.classList.contains('show')) {
-            historyPanel.classList.remove('show');
-        }
-    });
-});
 
 // 清除本地存储缓存并刷新页面
 function clearLocalStorage() {
@@ -929,7 +910,7 @@ function showImportBox(fun) {
                             <input type="file" id="ChooseFile" hidden />
                             <div class="flex w-28 h-9 px-2 flex-col bg-pink-600 rounded-full shadow text-white text-xs font-semibold leading-4 items-center justify-center cursor-pointer focus:outline-none">选择文件</div>
                         </label>
-                        <button onclick="importConfigFromUrl()" class="flex w-28 h-9 px-2 flex-col bg-blue-600 rounded-full shadow text-white text-xs font-semibold leading-4 items-center justify-center cursor-pointer focus:outline-none">从URL导入</button>
+                        <button data-action="importConfigFromUrl" class="flex w-28 h-9 px-2 flex-col bg-blue-600 rounded-full shadow text-white text-xs font-semibold leading-4 items-center justify-center cursor-pointer focus:outline-none">从URL导入</button>
                     </div>
                     </div>
                 </div>

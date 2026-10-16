@@ -200,5 +200,12 @@ function showAdminPasswordModal() {
 
 // 页面加载后，未登录时显示密码框
 document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('passwordForm');
+    if (form) {
+        form.onsubmit = event => {
+            event.preventDefault();
+            handlePasswordSubmit();
+        };
+    }
     if (!isPasswordVerified()) showPasswordModal();
 });

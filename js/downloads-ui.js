@@ -199,7 +199,9 @@
         const lockButton = document.getElementById('lockToggle');
         if (!lockButton) return;
         const params = new URLSearchParams(window.location.search);
-        if (params.get('offline') === '1') return; // 离线播放时不再提供缓存
+        // 离线播放时剧集列表里混有本地地址，缓存时改用下载记录里的原始地址
+        const offlineSeries = params.get('offline') === '1' ? downloads.series(params.get('series') || '') : null;
+        if (params.get('offline') === '1' && !offlineSeries) return;
 
         const button = document.createElement('button');
         button.type = 'button';
@@ -225,14 +227,15 @@
             const scope = event.target.closest('[data-scope]')?.dataset.scope;
             if (!scope) return;
             menu.classList.remove('show');
-            const episodes = (typeof currentEpisodes !== 'undefined' && currentEpisodes.length) ? currentEpisodes : [currentVideoUrl];
+            const episodes = offlineSeries ? offlineSeries.episodes.slice()
+                : (typeof currentEpisodes !== 'undefined' && currentEpisodes.length) ? currentEpisodes : [currentVideoUrl];
             const picked = scope === 'all'
                 ? episodes.map((url, episodeIndex) => ({ url, episodeIndex }))
                 : [{ url: episodes[currentEpisodeIndex] || currentVideoUrl, episodeIndex: currentEpisodeIndex }];
             addToDownloads({
-                title: currentVideoTitle,
-                vodId: params.get('id') || '',
-                sourceCode: params.get('source') || '',
+                title: offlineSeries ? offlineSeries.title : currentVideoTitle,
+                vodId: offlineSeries ? offlineSeries.vodId : params.get('id') || '',
+                sourceCode: offlineSeries ? offlineSeries.sourceCode : params.get('source') || '',
                 episodes
             }, picked);
         });

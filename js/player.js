@@ -1338,6 +1338,11 @@ const LOCK_ICONS = {
     unlocked: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.8-1.3"/></svg>'
 };
 
+const SEEK_ICONS = {
+    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><text x="12" y="16" text-anchor="middle" font-size="8.5" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">5</text></svg>',
+    forward: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/><text x="12" y="16" text-anchor="middle" font-size="8.5" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">5</text></svg>'
+};
+
 // 锁定：隐藏全部控件，并用一层遮挡拦截点击、双击、拖动等操作，只保留锁按钮；
 // 锁定期间轻点画面只会短暂显示锁按钮，防止观看时误触暂停、拖动进度或退出全屏。
 let controlsLocked = false;
@@ -1347,8 +1352,24 @@ function setupPlayerLock() {
     const $player = art.template.$player;
     const layer = document.createElement('div');
     layer.className = 'art-lock-layer';
-    layer.innerHTML = '<button type="button" class="art-lock-btn"></button>';
+    layer.innerHTML = `<button type="button" class="art-lock-btn"></button>
+        <div class="art-seek-btns">
+            <button type="button" data-seek="-5" aria-label="后退 5 秒" title="后退 5 秒">${SEEK_ICONS.back}</button>
+            <button type="button" data-seek="5" aria-label="快进 5 秒" title="快进 5 秒">${SEEK_ICONS.forward}</button>
+        </div>`;
     $player.appendChild(layer);
+
+    // 快退 / 快进 5 秒：和锁按钮一样随控制条显示，锁定时隐藏
+    layer.querySelector('.art-seek-btns').addEventListener('click', event => {
+        const seekButton = event.target.closest('[data-seek]');
+        event.stopPropagation();
+        if (!seekButton || controlsLocked || !art) return;
+        const offset = Number(seekButton.dataset.seek);
+        const duration = art.duration || Infinity;
+        art.seek = Math.min(Math.max(0, art.currentTime + offset), duration);
+        art.notice.show = offset > 0 ? '快进 5 秒' : '后退 5 秒';
+        art.controls.show = true;
+    });
 
     const button = layer.querySelector('.art-lock-btn');
     button.addEventListener('click', event => {

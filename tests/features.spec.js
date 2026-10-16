@@ -134,3 +134,15 @@ test('豆瓣海报加载失败后自动重试', async ({ page }) => {
     await expect(cover).toHaveClass(/is-loaded/, { timeout: 5000 });
     expect(await cover.getAttribute('data-retry')).toBe('1');
 });
+
+test('快退 / 快进 5 秒按钮随控制条显示，锁定时隐藏', async ({ page }) => {
+    await page.goto('/player.html?url=' + encodeURIComponent('https://media.example/none.m3u8') + '&title=Demo');
+    const buttons = page.locator('.art-seek-btns');
+    await expect(page.locator('.art-seek-btns [data-seek="5"]')).toBeAttached();
+    await page.evaluate(() => { art.controls.show = true; });
+    await expect(page.locator('.art-video-player')).toHaveClass(/art-control-show/);
+    expect(await buttons.evaluate(el => getComputedStyle(el).pointerEvents)).toBe('auto');
+
+    await page.evaluate(() => setControlsLocked(true));
+    expect(await buttons.evaluate(el => getComputedStyle(el).pointerEvents)).toBe('none');
+});

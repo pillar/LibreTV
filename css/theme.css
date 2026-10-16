@@ -1184,6 +1184,73 @@ body .switch input:checked + .slider {
     padding-right: max(10px, env(safe-area-inset-right));
 }
 
+/* App 横屏全屏：两端按钮往中间收、整体上抬，避开屏幕圆角（隐藏系统栏后安全区可能为 0） */
+.native-app .art-fullscreen-web .art-bottom {
+    padding-left: max(48px, env(safe-area-inset-left));
+    padding-right: max(48px, env(safe-area-inset-right));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+.native-app .art-fullscreen-web .art-lock-btn {
+    left: max(48px, env(safe-area-inset-left));
+}
+
+.native-app .art-fullscreen-web .art-seek-btns {
+    right: max(48px, env(safe-area-inset-right));
+}
+
+/* 快退 / 快进 5 秒：竖排在右侧，与左侧锁按钮对称 */
+.art-seek-btns {
+    position: absolute;
+    top: 50%;
+    right: max(14px, env(safe-area-inset-right));
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-50%) scale(0.9);
+    transition: opacity 0.25s var(--ease), transform 0.3s var(--spring);
+}
+
+.art-seek-btns button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.45);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+}
+
+.art-seek-btns button:active {
+    transform: scale(0.92);
+}
+
+.art-seek-btns svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* ArtPlayer 给播放器内所有 svg 设了填充色，这里还原为描边图标 */
+.art-video-player .art-seek-btns svg path {
+    fill: none;
+}
+
+.art-video-player .art-seek-btns svg text {
+    fill: currentColor;
+}
+
+.art-control-show:not(.art-locked):not(.art-setting-show) .art-seek-btns,
+.art-hover:not(.art-locked):not(.art-setting-show) .art-seek-btns {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%);
+}
+
 body #lockToggle svg {
     width: 1rem;
     height: 1rem;

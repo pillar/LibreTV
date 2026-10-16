@@ -320,7 +320,7 @@
             const index = Math.max(0, series.episodes.indexOf(item.url));
             localStorage.setItem('currentEpisodes', JSON.stringify(episodes));
             localStorage.setItem('currentVideoTitle', item.title);
-            const params = new URLSearchParams({ url: episodes[index], title: item.title, index: String(index), offline: '1' });
+            const params = new URLSearchParams({ url: episodes[index], title: item.title, index: String(index), offline: '1', series: item.seriesKey });
             if (series.vodId) params.set('id', series.vodId);
             if (series.sourceCode) params.set('source', series.sourceCode);
             // 始终在顶层页面打开，iframe 内拿不到原生能力

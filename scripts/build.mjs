@@ -1,9 +1,15 @@
 // 构建网站到 dist/：Cloudflare Worker（wrangler.jsonc 的 assets）、Node server.mjs 和 App（mobile/scripts/copy-web.mjs）都只发布这个目录。
-// 只复制下列网站文件，服务端代码、依赖、测试与 App 工程不会出现在 dist/ 中。
+//
+// - 每个页面引用的脚本按原顺序合并成一个文件、样式合并成一个文件，压缩后以内容哈希命名放在 dist/assets/，
+//   页面改为引用合并后的文件。内容不变时文件名不变，因此可以让浏览器长期缓存（见 dist/_headers 与 server.mjs）。
+// - 脚本仍是普通（非模块）脚本：合并后顶层函数和变量依旧是全局的，页面中的 data-action 调用不受影响。
+// - Tailwind 只生成页面与脚本中用到的类名。
 import { execFileSync } from 'node:child_process';
-import { cpSync, mkdirSync, rmSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { transform } from 'esbuild';
 
 // 端到端测试先统一构建一次，再启动 Node 版与 wrangler dev；wrangler dev 会自动执行构建命令，这里跳过以免并发清空 dist/
 if (process.env.PLAYANY_SKIP_BUILD === '1') {
@@ -13,27 +19,76 @@ if (process.env.PLAYANY_SKIP_BUILD === '1') {
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = join(root, 'dist');
+const assetsDir = join(outDir, 'assets');
 
-const ENTRIES = [
-    'index.html', 'player.html', 'watch.html', 'about.html', 'privacy.html',
-    'manifest.json', 'robots.txt', 'service-worker.js', 'VERSION.txt',
-    'css', 'js', 'libs', 'image'
-];
+const PAGES = ['index.html', 'player.html', 'watch.html', 'about.html', 'privacy.html'];
+const STATIC_FILES = ['manifest.json', 'robots.txt', 'service-worker.js', 'VERSION.txt', 'image'];
+// 压缩时不使用比 ES2020 更新的语法（现有代码本身也只用到 ES2020），保证 iOS 14 / Chrome 80 等可用
+const TARGET = 'es2020';
+
+const SCRIPT_TAG = /^[ \t]*<script src="((?:js|libs)\/[^"]+)"[^>]*><\/script>[ \t]*\r?\n?/gm;
+const STYLE_TAG = /^[ \t]*<link rel="stylesheet" href="(css\/[^"]+)">[ \t]*\r?\n?/gm;
 
 rmSync(outDir, { recursive: true, force: true });
-mkdirSync(outDir, { recursive: true });
-for (const entry of ENTRIES) {
-    cpSync(join(root, entry), join(outDir, entry), {
-        recursive: true,
-        filter: src => !src.endsWith('.psd') && !src.endsWith('tailwind.src.css')
-    });
+mkdirSync(assetsDir, { recursive: true });
+for (const entry of STATIC_FILES) {
+    cpSync(join(root, entry), join(outDir, entry), { recursive: true, filter: src => !src.endsWith('.psd') });
 }
 
-// Tailwind 只生成页面与脚本中用到的类名
+// Tailwind 先编译到临时位置，再与其他样式一起合并
+const tailwindCss = join(outDir, 'tailwind.tmp.css');
 execFileSync(join(root, 'node_modules/.bin/tailwindcss'), [
-    '-i', join(root, 'css/tailwind.src.css'),
-    '-o', join(outDir, 'css/tailwind.css'),
-    '--minify'
+    '-i', join(root, 'css/tailwind.src.css'), '-o', tailwindCss, '--minify'
 ], { cwd: root, stdio: ['ignore', 'ignore', 'inherit'] });
 
+function readSource(file) {
+    return file === 'css/tailwind.css' ? readFileSync(tailwindCss, 'utf8') : readFileSync(join(root, file), 'utf8');
+}
+
+// 相同内容（例如多个页面共用的样式组合）只输出一次
+const written = new Map();
+async function writeBundle(name, files, loader) {
+    // 每个文件以换行和分号隔开，避免上一个文件末尾缺少分号时与下一个文件连在一起
+    const source = files.map(file => `/* ${file} */\n${readSource(file)}\n${loader === 'js' ? ';' : ''}`).join('\n');
+    const { code } = await transform(source, { loader, minify: true, target: TARGET, legalComments: 'none' });
+    const hash = createHash('sha256').update(code).digest('hex').slice(0, 10);
+    const fileName = `assets/${name}.${hash}.${loader}`;
+    if (!written.has(fileName)) {
+        writeFileSync(join(outDir, fileName), code);
+        written.set(fileName, code.length);
+    }
+    return fileName;
+}
+
+for (const page of PAGES) {
+    let html = readFileSync(join(root, page), 'utf8');
+    const name = page.replace(/\.html$/, '');
+
+    const styles = [...html.matchAll(STYLE_TAG)].map(m => m[1]);
+    if (styles.length) {
+        const bundle = await writeBundle(name, styles, 'css');
+        let first = true;
+        html = html.replace(STYLE_TAG, () => {
+            if (!first) return '';
+            first = false;
+            return `    <link rel="stylesheet" href="${bundle}">\n`;
+        });
+    }
+
+    const scripts = [...html.matchAll(SCRIPT_TAG)].map(m => m[1]);
+    if (scripts.length) {
+        const bundle = await writeBundle(name, scripts, 'js');
+        // 合并后的脚本放在原来最后一个脚本的位置（各页面的脚本都位于 body 末尾或 head 中同一处）
+        let remaining = scripts.length;
+        html = html.replace(SCRIPT_TAG, () => (--remaining === 0 ? `    <script src="${bundle}"></script>\n` : ''));
+    }
+
+    writeFileSync(join(outDir, page), html);
+}
+rmSync(tailwindCss);
+
+// 带哈希的文件内容不会变化，允许浏览器长期缓存（Cloudflare 静态资源读取 _headers）
+writeFileSync(join(outDir, '_headers'), '/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n');
+
+for (const [file, size] of written) console.log(`  ${file}  ${(size / 1024).toFixed(1)} KB`);
 console.log(`已构建到 ${outDir}`);

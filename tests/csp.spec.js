@@ -42,7 +42,10 @@ test('页面带有 CSP，首页的搜索、详情、历史、豆瓣推荐都能�
     await page.evaluate(() => addToViewingHistory({ title: '历史剧', url: 'player.html?url=x', episodeIndex: 0, sourceName: 'bfzy', vod_id: 'a1', episodes: ['x'] }));
     await page.click('.tv-nav [data-action="toggleHistory"]');
     await page.click('.tv-nav [data-action="toggleHistory"]');
-    await page.locator('#historyList [data-action="deleteHistoryItem"]').first().click({ force: true });
+    await expect(page.locator('#historyPanel')).toHaveClass(/show/);
+    const historyItem = page.locator('#historyList .history-item').first();
+    await historyItem.hover();
+    await historyItem.locator('[data-action="deleteHistoryItem"]').click();
     await expect(page.locator('#historyList [data-action="playFromHistory"]')).toHaveCount(0);
     await expect(page.locator('#historyPanel')).toHaveClass(/show/);
 

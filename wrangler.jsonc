@@ -13,8 +13,8 @@
     "directory": "dist",
     "binding": "ASSETS",
     // 页面需要写入登录状态、/proxy/ 与 /auth/ 需要服务端处理，先进入 Worker；
-    // 带哈希的静态文件与图片直接由 Cloudflare 返回，不占用 Worker 调用次数
-    "run_worker_first": ["/*", "!/assets/*", "!/image/*", "!/css/*", "!/js/*", "!/libs/*"]
+    // 带哈希的脚本样式（assets/）与图片直接由 Cloudflare 返回，不占用 Worker 调用次数
+    "run_worker_first": ["/*", "!/assets/*", "!/image/*"]
   },
   // 按客户端 IP 限流：登录每分钟 10 次（防止猜密码），代理每分钟 300 次（防止被当作通用代理滥用）
   "ratelimits": [

@@ -1573,3 +1573,8 @@ body.page-bg {
         backdrop-filter: none;
     }
 }
+
+/* 搜索进度：部分数据源仍在返回时显示（js/app.js renderSearchProgress） */
+body .search-progress {
+    color: var(--blue);
+}

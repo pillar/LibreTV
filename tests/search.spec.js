@@ -66,3 +66,28 @@ test('播放页 URL 参数中的恶意内容不会被执行，javascript: 返回
     await page.waitForURL(url => url.pathname === '/' || url.pathname === '/index.html');
     expect(await page.evaluate(() => window.__pwn || 0)).toBe(0);
 });
+
+test('先返回的数据源先显示，慢的数据源返回后追加并更新进度', async ({ page }) => {
+    let releaseSlow;
+    const slowGate = new Promise(resolve => { releaseSlow = resolve; });
+    await page.route('**/proxy/**', async route => {
+        const url = new URL(decodeURIComponent(route.request().url().split('/proxy/')[1]));
+        const fast = url.hostname.includes('bfzy');
+        if (!fast) await slowGate;
+        const list = fast ? [vod('b1', '快的剧')] : [vod('r1', '慢的剧')];
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ list, pagecount: 1 }) });
+    });
+    await page.goto('/');
+    await page.fill('#searchInput', '剧');
+    await page.click('button.search-go');
+
+    const cards = page.locator('#results .card-hover');
+    await expect(cards).toHaveCount(1);
+    await expect(cards.first()).toContainText('快的剧');
+    await expect(page.locator('#searchProgress')).toHaveText('正在搜索 1/2 个源 · ');
+
+    releaseSlow();
+    await expect(cards).toHaveCount(2);
+    await expect(page.locator('#searchResultsCount')).toHaveText('2');
+    await expect(page.locator('#searchProgress')).toHaveText('');
+});

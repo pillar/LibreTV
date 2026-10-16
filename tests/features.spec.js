@@ -146,3 +146,9 @@ test('快退 / 快进 5 秒按钮随控制条显示，锁定时隐藏', async ({
     await page.evaluate(() => setControlsLocked(true));
     expect(await buttons.evaluate(el => getComputedStyle(el).pointerEvents)).toBe('none');
 });
+
+test('播放页点击左上角 Logo 返回首页', async ({ page }) => {
+    await page.goto('/player.html?url=' + encodeURIComponent('https://media.example/none.m3u8') + '&title=Demo');
+    await page.click('#homeButton');
+    await page.waitForURL(url => url.pathname === '/' || url.pathname === '/index.html');
+});

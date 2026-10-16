@@ -12,6 +12,27 @@ function sameOriginUrl(value) {
 }
 
 // 改进返回功能
+// 左上角 Logo：回到首页；在首页的 iframe 中打开时，关闭播放器回到首页
+function goHome(event) {
+    if (event) event.preventDefault();
+    if (window.self !== window.top) {
+        try {
+            if (typeof window.parent.closeVideoPlayer === 'function') {
+                window.parent.closeVideoPlayer(true);
+                return;
+            }
+        } catch (e) {
+            console.error('调用父窗口closeVideoPlayer失败:', e);
+        }
+    }
+    window.location.href = '/';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const homeButton = document.getElementById('homeButton');
+    if (homeButton) homeButton.addEventListener('click', goHome);
+});
+
 function goBack(event) {
     // 防止默认链接行为
     if (event) event.preventDefault();

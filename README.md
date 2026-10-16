@@ -30,7 +30,7 @@ PlayAny TV 是一个轻量级的在线视频搜索与观看平台，聚合多个
 4. 在 Worker 的「设置 > 变量和机密」中以 Secret 添加 `PASSWORD`（可选 `ADMINPASSWORD`、`SESSION_SECRET`）。**务必设置 `PASSWORD`**：不设置时任何人都能使用 `/proxy/`，网站会成为公开代理；
 5. 推送到 main 分支即自动部署。
 
-入口是 `worker.js`，处理逻辑在 `lib/handler.mjs`（与 Docker 版共用）。登录与代理按客户端 IP 限流（见 `wrangler.jsonc` 的 `ratelimits`），数据源接口结果在服务端缓存 5 分钟。
+入口是 `worker.js`，处理逻辑在 `lib/handler.mjs`（与 Docker 版共用）。登录与代理按客户端 IP 限流（Durable Object 计数，见 `worker.js`），数据源接口结果在服务端缓存 5 分钟。
 
 ### Docker
 

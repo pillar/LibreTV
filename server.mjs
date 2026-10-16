@@ -26,7 +26,7 @@ const env = {
     PASSWORD: process.env.PASSWORD || '',
     ADMINPASSWORD: process.env.ADMINPASSWORD || '',
     SESSION_SECRET: process.env.SESSION_SECRET || '',
-    // 与 wrangler.jsonc 中 Worker 的限流配置一致：登录每分钟 10 次、代理每分钟 300 次（按客户端 IP）
+    // 与 Worker（worker.js 的 LIMITS）一致：登录每分钟 10 次、代理每分钟 300 次（按客户端 IP）
     LOGIN_LIMITER: createRateLimiter({ limit: Number(process.env.LOGIN_RATE_LIMIT || 10), period: 60 }),
     PROXY_LIMITER: createRateLimiter({ limit: Number(process.env.PROXY_RATE_LIMIT || 300), period: 60 })
 };

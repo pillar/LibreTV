@@ -1,6 +1,6 @@
 // 页面交互的统一入口：元素上写 data-action="函数名"（参数放在 data-args，JSON 数组），点击时调用同名全局函数。
 // 取代内联的 onclick 等属性，使页面可以启用禁止内联脚本的 CSP（见 lib/handler.mjs）。
-// 只允许调用 ACTIONS 中列出的函数；参数中的 "$event" 会替换为点击事件。
+// 只处理 ACTIONS 中列出的函数（其他 data-action 由各自的模块处理）；带 data-pass-event 的元素把点击事件作为第一个参数。
 
 const ACTIONS = new Set([
     // 首页
@@ -26,9 +26,10 @@ document.addEventListener('click', event => {
     const target = event.target.closest('[data-action], a[href]');
     if (!target || !target.dataset.action) return;
     const name = target.dataset.action;
+    if (!ACTIONS.has(name)) return;
     const fn = window[name];
-    if (!ACTIONS.has(name) || typeof fn !== 'function') {
-        console.error('未知的页面操作:', name);
+    if (typeof fn !== 'function') {
+        console.error('页面操作未定义:', name);
         return;
     }
     if (target.tagName === 'A') event.preventDefault();
@@ -39,7 +40,8 @@ document.addEventListener('click', event => {
         console.error('页面操作参数无效:', name, error);
         return;
     }
-    fn(...args.map(arg => (arg === '$event' ? event : arg)));
+    if ('passEvent' in target.dataset) args.unshift(event);
+    fn(...args);
 });
 
 // 图片加载失败：data-fallback="remove" 移除图片，"placeholder" 换成本地占位图（只替换一次）

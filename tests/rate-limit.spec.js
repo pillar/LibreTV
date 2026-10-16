@@ -1,4 +1,4 @@
-// 登录限流（Worker 的 LOGIN_LIMITER：每个 IP 每分钟 10 次），见 wrangler.jsonc
+// 登录限流（Worker 的 RateLimiter：每个 IP 每分钟 10 次），见 worker.js
 import { test, expect } from '@playwright/test';
 
 test('连续登录失败超过限制后返回 429，页面提示稍后再试', async ({ page }) => {

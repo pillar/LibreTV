@@ -12,7 +12,8 @@
     "test": "npm run build && playwright test"
   },
   "dependencies": {
-    "dotenv": "^16.5.0"
+    "dotenv": "^16.5.0",
+    "undici": "7.30.1"
   },
   "devDependencies": {
     "@playwright/test": "1.57.0",

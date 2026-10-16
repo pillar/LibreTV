@@ -24,3 +24,22 @@ test('代理只接受 GET 请求', async ({ page }) => {
     const response = await page.request.post('/proxy/' + encodeURIComponent('https://example.com/'));
     expect(response.status()).toBe(405);
 });
+
+test('登录请求体过大时直接拒绝', async ({ request }) => {
+    const response = await request.post('/auth/login', {
+        headers: { 'Content-Type': 'application/json' },
+        data: JSON.stringify({ password: 'x'.repeat(20_000) })
+    });
+    expect(response.status()).toBe(413);
+});
+
+test('页面的 HEAD 与条件请求不会出错，且不返回旧页面', async ({ request }) => {
+    const head = await request.head('/');
+    expect(head.status()).toBe(200);
+    const first = await request.get('/', { headers: { Accept: '*/*' } });
+    const conditional = await request.get('/', {
+        headers: { Accept: '*/*', 'If-Modified-Since': new Date().toUTCString(), 'If-None-Match': first.headers()['etag'] || '"x"' }
+    });
+    expect(conditional.status()).toBe(200);
+    expect(await conditional.text()).toContain('"passwordRequired":true');
+});

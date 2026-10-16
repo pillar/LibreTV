@@ -2,13 +2,15 @@
 import http from 'node:http';
 import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
-import { lookup } from 'node:dns/promises';
+import dns from 'node:dns';
 import path from 'node:path';
 import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
+import { Agent, fetch as undiciFetch } from 'undici';
 import { handleRequest } from './lib/handler.mjs';
-import { isAllowedTarget, isPrivateAddress } from './lib/target-guard.mjs';
+import { isPrivateAddress } from './lib/target-guard.mjs';
 import { createRateLimiter } from './lib/rate-limit.mjs';
 
 dotenv.config();
@@ -17,6 +19,8 @@ const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist');
 const PORT = Number(process.env.PORT || 8080);
 // 部署在反向代理之后时设置 TRUST_PROXY=true，限流按 X-Forwarded-For 中的客户端地址计算
 const TRUST_PROXY = process.env.TRUST_PROXY === 'true';
+// 请求体只有登录接口会用到，超过这个大小直接拒绝
+const MAX_BODY_BYTES = 16 * 1024;
 
 const env = {
     PASSWORD: process.env.PASSWORD || '',
@@ -41,16 +45,21 @@ const MIME_TYPES = {
     '.woff2': 'font/woff2'
 };
 
-// 代理目标检查：地址本身（lib/target-guard.mjs）+ 域名解析结果都不能是内网地址
-async function isSafeTarget(urlString) {
-    if (!isAllowedTarget(urlString)) return false;
-    try {
-        const addresses = await lookup(new URL(urlString).hostname, { all: true });
-        return addresses.length > 0 && addresses.every(({ address }) => !isPrivateAddress(address));
-    } catch {
-        return false;
-    }
+// 代理连接内网检查：地址本身由 lib/target-guard.mjs 检查；域名在建立连接时校验实际解析出的 IP，
+// 避免先校验、再由 fetch 重新解析时被 DNS 重绑定指向内网
+function safeLookup(hostname, options, callback) {
+    dns.lookup(hostname, { ...options, all: true }, (error, addresses) => {
+        if (error) return callback(error);
+        if (!addresses.length || addresses.some(({ address }) => isPrivateAddress(address))) {
+            return callback(Object.assign(new Error('不允许访问的地址'), { code: 'EBLOCKED' }));
+        }
+        if (options.all) return callback(null, addresses);
+        callback(null, addresses[0].address, addresses[0].family);
+    });
 }
+
+const proxyAgent = new Agent({ connect: { lookup: safeLookup } });
+const proxyOptions = { fetch: (url, init) => undiciFetch(url, { ...init, dispatcher: proxyAgent }) };
 
 async function findFile(pathname) {
     let relative;
@@ -91,26 +100,46 @@ async function serveAsset(request) {
     return new Response(body, { headers });
 }
 
+// 反向代理会把真实客户端地址追加到 X-Forwarded-For 末尾，前面的内容可由客户端伪造，只取最后一项
 function clientIpOf(req) {
     const forwarded = TRUST_PROXY && req.headers['x-forwarded-for'];
-    return (forwarded ? forwarded.split(',')[0].trim() : req.socket.remoteAddress) || '';
+    return (forwarded ? forwarded.split(',').pop().trim() : req.socket.remoteAddress) || '';
+}
+
+/** 读取请求体，超过 MAX_BODY_BYTES 时返回 null */
+async function readBody(req) {
+    if (Number(req.headers['content-length'] || 0) > MAX_BODY_BYTES) return null;
+    const chunks = [];
+    let size = 0;
+    for await (const chunk of req) {
+        size += chunk.length;
+        if (size > MAX_BODY_BYTES) return null;
+        chunks.push(chunk);
+    }
+    return Buffer.concat(chunks);
 }
 
 const server = http.createServer(async (req, res) => {
     try {
         const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
         if (TRUST_PROXY && req.headers['x-forwarded-proto'] === 'https') url.protocol = 'https:';
-        const hasBody = req.method !== 'GET' && req.method !== 'HEAD';
+        let body;
+        if (req.method !== 'GET' && req.method !== 'HEAD') {
+            body = await readBody(req);
+            if (body === null) {
+                res.writeHead(413, { 'Content-Type': 'text/plain; charset=utf-8', Connection: 'close' });
+                return res.end('请求过大');
+            }
+        }
         const request = new Request(url, {
             method: req.method,
             headers: Object.entries(req.headers).filter(([, v]) => typeof v === 'string'),
-            body: hasBody ? Readable.toWeb(req) : undefined,
-            duplex: hasBody ? 'half' : undefined
+            body
         });
         const response = await handleRequest(request, env, {
             serveAsset,
             clientIp: clientIpOf(req),
-            checkTarget: isSafeTarget
+            proxyOptions
         });
 
         const headers = {
@@ -123,7 +152,8 @@ const server = http.createServer(async (req, res) => {
         if (cookies.length) headers['set-cookie'] = cookies;
         res.writeHead(response.status, headers);
         if (response.body && req.method !== 'HEAD') {
-            Readable.fromWeb(response.body).on('error', () => res.destroy()).pipe(res);
+            // 客户端中途断开时 pipeline 会同时关闭源流（本地文件或上游连接）
+            await pipeline(Readable.fromWeb(response.body), res).catch(() => {});
         } else {
             res.end();
         }

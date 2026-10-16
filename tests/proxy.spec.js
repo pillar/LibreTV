@@ -45,3 +45,12 @@ test('默认拦截本机地址', async () => {
     const response = await proxyFetch(`${origin}/page`);
     expect(response.status).toBe(400);
 });
+
+test('源站出错时不允许缓存，便于重试', async () => {
+    const failing = http.createServer((req, res) => { res.writeHead(503); res.end('busy'); });
+    await new Promise(resolve => failing.listen(0, '127.0.0.1', resolve));
+    const response = await proxyFetch(`http://127.0.0.1:${failing.address().port}/x`, { checkTarget: () => true });
+    failing.close();
+    expect(response.status).toBe(503);
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+});

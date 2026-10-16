@@ -1634,35 +1634,7 @@ async function switchToResource(sourceKey, vodId) {
     
     showLoading();
     try {
-        // 构建API参数
-        let apiParams = '';
-        
-        // 处理自定义API源
-        if (sourceKey.startsWith('custom_')) {
-            const customIndex = sourceKey.replace('custom_', '');
-            const customApi = getCustomApiInfo(customIndex);
-            if (!customApi) {
-                showToast('自定义API配置无效', 'error');
-                hideLoading();
-                return;
-            }
-            // 传递 detail 字段
-            if (customApi.detail) {
-                apiParams = '&customApi=' + encodeURIComponent(customApi.url) + '&customDetail=' + encodeURIComponent(customApi.detail) + '&source=custom';
-            } else {
-                apiParams = '&customApi=' + encodeURIComponent(customApi.url) + '&source=custom';
-            }
-        } else {
-            // 内置API
-            apiParams = '&source=' + sourceKey;
-        }
-        
-        // Add a timestamp to prevent caching
-        const timestamp = new Date().getTime();
-        const cacheBuster = `&_t=${timestamp}`;
-        const response = await fetch(`/api/detail?id=${encodeURIComponent(vodId)}${apiParams}${cacheBuster}`);
-        
-        const data = await response.json();
+        const data = await fetchVideoDetail(vodId, sourceKey);
         
         if (!data.episodes || data.episodes.length === 0) {
             showToast('未找到播放资源', 'error');

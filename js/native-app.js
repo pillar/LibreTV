@@ -81,12 +81,26 @@
         img.dataset.nativeFallback = '1';
         const target = decodeURIComponent(src.slice(PROXY_URL.length));
         const headers = /\.doubanio\.com\//.test(target) ? { Referer: 'https://movie.douban.com/' } : {};
-        nativeHttp.request({ url: target, headers, responseType: 'blob' }).then(res => {
-            if (res.status !== 200) return;
+        // 偶发失败时间隔重试，共 3 次
+        const delays = [0, 1000, 3000];
+        const attempt = async index => {
+            if (delays[index]) await new Promise(resolve => setTimeout(resolve, delays[index]));
+            const res = await nativeHttp.request({ url: target, headers, responseType: 'blob' });
+            if (res.status !== 200) throw new Error(`HTTP ${res.status}`);
+            return res;
+        };
+        const load = index => attempt(index).catch(error => {
+            if (index + 1 < delays.length && img.isConnected) return load(index + 1);
+            throw error;
+        });
+        load(0).then(res => {
             const type = (res.headers && (res.headers['Content-Type'] || res.headers['content-type'])) || 'image/jpeg';
             img.classList.remove('object-contain');
             img.src = `data:${type};base64,${res.data}`;
-        }).catch(error => console.error('原生加载图片失败:', target, error && error.message));
+        }).catch(error => {
+            console.error('原生加载图片失败:', target, error && error.message);
+            if (img.parentElement) img.parentElement.classList.add('is-failed');
+        });
     }, true);
 
     // ---- 网络不可用提示 ----

@@ -436,65 +436,91 @@ function renderRecommend(tag, pageLimit, pageStart) {
             console.error("获取豆瓣数据失败：", error);
             container.innerHTML = `
                 <div class="col-span-full text-center py-8">
-                    <div class="text-red-400">❌ 获取豆瓣数据失败，请稍后重试</div>
-                    <div class="text-gray-500 text-sm mt-2">提示：使用VPN可能有助于解决此问题</div>
+                    <div class="text-red-400">❌ 获取豆瓣数据失败</div>
+                    <button type="button" class="douban-retry mt-3" onclick="renderRecommend(doubanCurrentTag, doubanPageSize, doubanPageStart)">重试</button>
                 </div>
             `;
         });
 }
 
-async function fetchDoubanData(url) {
-    // 添加超时控制
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
-    
-    // 设置请求选项，包括信号和头部
-    const fetchOptions = {
-        signal: controller.signal,
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-            'Referer': 'https://movie.douban.com/',
-            'Accept': 'application/json, text/plain, */*',
-        }
-    };
+// 豆瓣接口偶尔超时或返回错误，经代理最多请求 3 次（间隔递增），都失败再试一次备用服务
+const DOUBAN_RETRY_DELAYS = [0, 800, 2000];
+const DOUBAN_TIMEOUT = 8000;
 
+async function fetchDoubanViaProxy(url) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), DOUBAN_TIMEOUT);
     try {
-        // 尝试直接访问（豆瓣API可能允许部分CORS请求）
-        const response = await fetch(PROXY_URL + encodeURIComponent(url), fetchOptions);
-        clearTimeout(timeoutId);
-        
+        const response = await fetch(PROXY_URL + encodeURIComponent(url), {
+            signal: controller.signal,
+            headers: { 'Accept': 'application/json, text/plain, */*' }
+        });
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            const error = new Error(`HTTP error! Status: ${response.status}`);
+            error.status = response.status;
+            throw error;
         }
-        
         return await response.json();
-    } catch (err) {
-        console.error("豆瓣 API 请求失败（直接代理）：", err);
-        
-        // 失败后尝试备用方法：作为备选
-        const fallbackUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-        
-        try {
-            const fallbackResponse = await fetch(fallbackUrl);
-            
-            if (!fallbackResponse.ok) {
-                throw new Error(`备用API请求失败! 状态: ${fallbackResponse.status}`);
-            }
-            
-            const data = await fallbackResponse.json();
-            
-            // 解析原始内容
-            if (data && data.contents) {
-                return JSON.parse(data.contents);
-            } else {
-                throw new Error("无法获取有效数据");
-            }
-        } catch (fallbackErr) {
-            console.error("豆瓣 API 备用请求也失败：", fallbackErr);
-            throw fallbackErr; // 向上抛出错误，让调用者处理
-        }
+    } finally {
+        clearTimeout(timeoutId);
     }
 }
+
+async function fetchDoubanData(url) {
+    for (const [attempt, delay] of DOUBAN_RETRY_DELAYS.entries()) {
+        if (delay) await new Promise(resolve => setTimeout(resolve, delay));
+        try {
+            return await fetchDoubanViaProxy(url);
+        } catch (err) {
+            console.warn(`豆瓣 API 请求失败（第 ${attempt + 1} 次）：`, err);
+            // 未登录或被拒绝时重试没有意义
+            if (err.status === 401 || err.status === 403) throw err;
+        }
+    }
+
+    const fallbackUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    try {
+        const fallbackResponse = await fetch(fallbackUrl);
+        if (!fallbackResponse.ok) {
+            throw new Error(`备用API请求失败! 状态: ${fallbackResponse.status}`);
+        }
+        const data = await fallbackResponse.json();
+        if (data && data.contents) {
+            return JSON.parse(data.contents);
+        }
+        throw new Error("无法获取有效数据");
+    } catch (fallbackErr) {
+        console.error("豆瓣 API 备用请求也失败：", fallbackErr);
+        throw fallbackErr;
+    }
+}
+
+// 海报异步加载：先显示占位，加载完成后淡入；失败时（网页端）间隔重试，App 内由 native-app.js 改用原生请求
+const COVER_RETRY_DELAYS = [1000, 3000];
+
+document.addEventListener('load', event => {
+    const img = event.target;
+    if (img instanceof HTMLImageElement && img.classList.contains('douban-cover')) {
+        img.classList.add('is-loaded');
+        img.parentElement.classList.remove('is-failed');
+    }
+}, true);
+
+document.addEventListener('error', event => {
+    const img = event.target;
+    if (!(img instanceof HTMLImageElement) || !img.classList.contains('douban-cover')) return;
+    if (document.documentElement.classList.contains('native-app')) return;
+    const attempt = Number(img.dataset.retry || 0);
+    if (attempt >= COVER_RETRY_DELAYS.length) {
+        img.parentElement.classList.add('is-failed');
+        return;
+    }
+    img.dataset.retry = String(attempt + 1);
+    const src = img.getAttribute('src');
+    setTimeout(() => {
+        if (img.isConnected) img.setAttribute('src', src);
+    }, COVER_RETRY_DELAYS[attempt]);
+}, true);
 
 // 抽取渲染豆瓣卡片的逻辑到单独函数
 function renderDoubanCards(data, container) {
@@ -525,10 +551,10 @@ function renderDoubanCards(data, container) {
             
             // 为不同设备优化卡片布局
             card.innerHTML = `
-                <div class="relative w-full aspect-[2/3] overflow-hidden cursor-pointer" onclick="fillAndSearchWithDouban(${jsArg(item.title)})">
-                    <img src="${escapeHtml(proxiedCoverUrl)}" alt="${safeTitle}" 
-                        class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                        loading="lazy">
+                <div class="douban-cover-wrap relative w-full aspect-[2/3] overflow-hidden cursor-pointer" onclick="fillAndSearchWithDouban(${jsArg(item.title)})">
+                    <img src="${escapeHtml(proxiedCoverUrl)}" alt="${safeTitle}"
+                        class="douban-cover w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                        loading="lazy" decoding="async">
                     <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60"></div>
                     <div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-sm">
                         <span class="text-yellow-400">★</span> ${safeRate}

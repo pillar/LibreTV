@@ -73,3 +73,64 @@ test('导入配置只接受白名单内且格式正确的设置项', async ({ pa
     expect(result.evil).toBeNull();
     expect(result.rejected).toBe(true);
 });
+
+test('豆瓣接口偶发失败时自动重试，海报加载后淡入；持续失败时可手动重试', async ({ page, context }) => {
+    await prepare(page, { douban: true });
+    let failuresLeft = 2;
+    let calls = 0;
+    await page.route('**/proxy/**', route => {
+        const target = decodeURIComponent(route.request().url().split('/proxy/')[1] || '');
+        const url = new URL(target);
+        if (url.pathname === '/j/search_subjects') {
+            calls++;
+            if (failuresLeft-- > 0) return route.fulfill({ status: 502, body: 'bad gateway' });
+            return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ subjects: [
+                { title: '豆瓣片', rate: '8.8', url: 'https://movie.douban.com/subject/1/', cover: 'https://img1.doubanio.com/p1.jpg' }
+            ] }) });
+        }
+        if (url.hostname.endsWith('doubanio.com')) {
+            return route.fulfill({ path: 'image/icon-512.png', contentType: 'image/png' });
+        }
+        if (url.pathname === '/j/search_tags') {
+            return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ tags: ['热门'] }) });
+        }
+        return route.fulfill({ status: 404, body: 'not mocked' });
+    });
+    await context.route('https://api.allorigins.win/**', route => route.abort());
+    await page.goto('/');
+
+    const cover = page.locator('#douban-results .douban-cover');
+    await expect(cover).toHaveCount(1);
+    await expect(cover).toHaveClass(/is-loaded/);
+    expect(calls).toBe(3);
+
+    // 3 次都失败：显示重试按钮，点击后重新请求
+    failuresLeft = 3;
+    await page.evaluate(() => renderRecommend(doubanCurrentTag, doubanPageSize, doubanPageStart));
+    const retry = page.locator('#douban-results .douban-retry');
+    await expect(retry).toBeVisible({ timeout: 15000 });
+    await retry.click();
+    await expect(page.locator('#douban-results .douban-cover')).toHaveClass(/is-loaded/);
+});
+
+test('豆瓣海报加载失败后自动重试', async ({ page }) => {
+    await prepare(page, { douban: true });
+    let imageFailures = 1;
+    await page.route('**/proxy/**', route => {
+        const url = new URL(decodeURIComponent(route.request().url().split('/proxy/')[1] || ''));
+        if (url.pathname === '/j/search_subjects') {
+            return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ subjects: [
+                { title: '豆瓣片', rate: '8.8', url: 'https://movie.douban.com/subject/1/', cover: 'https://img1.doubanio.com/p1.jpg' }
+            ] }) });
+        }
+        if (url.hostname.endsWith('doubanio.com')) {
+            if (imageFailures-- > 0) return route.fulfill({ status: 502, body: 'bad gateway' });
+            return route.fulfill({ path: 'image/icon-512.png', contentType: 'image/png' });
+        }
+        return route.fulfill({ status: 404, body: 'not mocked' });
+    });
+    await page.goto('/');
+    const cover = page.locator('#douban-results .douban-cover');
+    await expect(cover).toHaveClass(/is-loaded/, { timeout: 5000 });
+    expect(await cover.getAttribute('data-retry')).toBe('1');
+});

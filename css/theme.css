@@ -557,6 +557,44 @@ body .douban-card:hover > div:first-child::after {
     opacity: 1;
 }
 
+/* 豆瓣海报：加载中显示流光占位，加载完成淡入，失败显示静态占位 */
+body .douban-card > div.douban-cover-wrap:first-child {
+    background: linear-gradient(100deg, var(--fill) 30%, rgba(255, 255, 255, 0.6) 50%, var(--fill) 70%) 0 0 / 300% 100%;
+    animation: cover-shimmer 1.4s linear infinite;
+}
+
+body .douban-card > div.douban-cover-wrap:first-child:has(.douban-cover.is-loaded),
+body .douban-card > div.douban-cover-wrap:first-child.is-failed {
+    animation: none;
+    background: var(--fill);
+}
+
+body .douban-cover {
+    opacity: 0;
+    transition: opacity 0.35s var(--ease), transform 0.5s var(--ease-out);
+}
+
+body .douban-cover.is-loaded {
+    opacity: 1;
+}
+
+@keyframes cover-shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body .douban-card > div.douban-cover-wrap:first-child { animation: none; }
+}
+
+body .douban-retry {
+    padding: 6px 18px;
+    border-radius: 999px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 14px;
+}
+
 /* 搜索结果：横向卡片 */
 body .card-hover {
     background: var(--surface);

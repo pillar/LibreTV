@@ -1273,7 +1273,7 @@ async function importConfigFromUrl() {
             if (!CONFIG_FILE_NAMES.includes(config.name)) throw '配置文件格式不正确';
 
             // 验证哈希
-            const dataHash = await sha256(JSON.stringify(config.data));
+            const dataHash = await sha256Hex(JSON.stringify(config.data));
             if (dataHash !== config.hash) throw '配置文件哈希值不匹配';
 
             // 导入配置（只接受白名单内且格式正确的设置项）
@@ -1323,7 +1323,7 @@ async function importConfig() {
             if (!CONFIG_FILE_NAMES.includes(config.name)) throw '配置文件格式不正确';
 
             // 验证哈希
-            const dataHash = await sha256(JSON.stringify(config.data));
+            const dataHash = await sha256Hex(JSON.stringify(config.data));
             if (dataHash !== config.hash) throw '配置文件哈希值不匹配';
 
             // 导入配置（只接受白名单内且格式正确的设置项）
@@ -1429,7 +1429,7 @@ async function exportConfig() {
     config['time'] = times;               // 配置文件生成时间
     config['cfgVer'] = '1.0.0';           // 配置文件版本
     config['data'] = items;               // 配置文件数据
-    config['hash'] = await sha256(JSON.stringify(config['data']));  // 计算数据的哈希值，用于校验
+    config['hash'] = await sha256Hex(JSON.stringify(config['data']));  // 计算数据的哈希值，用于校验
 
     // 将配置数据保存为 JSON 文件
     saveStringAsFile(JSON.stringify(config), 'PlayAnyTV-Settings_' + times + '.json');

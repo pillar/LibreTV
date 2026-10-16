@@ -1,33 +1,24 @@
-FROM node:lts-alpine
-
-LABEL description="PlayAny TV - 免费在线视频搜索与观看平台"
-
-# 设置环境变量
-ENV PORT=8080
-ENV CORS_ORIGIN=*
-ENV DEBUG=false
-ENV REQUEST_TIMEOUT=5000
-ENV MAX_RETRIES=2
-ENV CACHE_MAX_AGE=1d
-
-# 设置工作目录
+# 第一阶段：构建网站到 dist/（需要开发依赖中的 Tailwind 等工具）
+FROM node:lts-alpine AS build
 WORKDIR /app
-
-# 复制 package.json 和 package-lock.json（如果存在）
 COPY package*.json ./
-
-# 安装依赖
-RUN npm ci --only=production && npm cache clean --force
-
-# 复制应用文件
+RUN npm ci --ignore-scripts
 COPY . .
+RUN npm run build
 
-# 暴露端口
+# 第二阶段：只包含服务端代码、生产依赖与 dist/
+FROM node:lts-alpine
+LABEL description="PlayAny TV - 免费在线视频搜索与观看平台"
+ENV PORT=8080
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+COPY server.mjs ./
+COPY lib ./lib
+COPY --from=build /app/dist ./dist
+
 EXPOSE 8080
-
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
-
-# 启动应用
-CMD ["npm", "start"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://localhost:8080/manifest.json').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+USER node
+CMD ["node", "server.mjs"]

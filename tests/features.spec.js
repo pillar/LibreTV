@@ -74,7 +74,7 @@ test('导入配置只接受白名单内且格式正确的设置项', async ({ pa
     expect(result.rejected).toBe(true);
 });
 
-test('豆瓣接口偶发失败时自动重试，海报加载后淡入；持续失败时可手动重试', async ({ page, context }) => {
+test('豆瓣接口偶发失败时自动重试，海报加载后淡入；持续失败时可手动重试', async ({ page }) => {
     await prepare(page, { douban: true });
     let failuresLeft = 2;
     let calls = 0;
@@ -96,7 +96,6 @@ test('豆瓣接口偶发失败时自动重试，海报加载后淡入；持续�
         }
         return route.fulfill({ status: 404, body: 'not mocked' });
     });
-    await context.route('https://api.allorigins.win/**', route => route.abort());
     await page.goto('/');
 
     const cover = page.locator('#douban-results .douban-cover');

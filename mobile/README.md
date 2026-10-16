@@ -25,7 +25,7 @@
 ```bash
 cd mobile
 npm install
-npm run sync          # 复制根目录前端文件到 www/ 并同步到 ios/、android/
+npm run sync          # 构建网站（根目录 npm run build）并复制到 www/，再同步到 ios/、android/
 ```
 
 修改了根目录的 HTML / CSS / JS 之后，都要重新执行 `npm run sync`。

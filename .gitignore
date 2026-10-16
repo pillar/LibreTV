@@ -30,3 +30,6 @@ test-results/
 
 # Wrangler 本地状态
 .wrangler/
+
+# 构建产物（npm run build）
+css/tailwind.css

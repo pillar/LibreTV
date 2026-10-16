@@ -25,13 +25,12 @@ PlayAny TV 是一个轻量级的在线视频搜索与观看平台，聚合多个
 ### Cloudflare Workers
 
 1. 把本仓库推送到你自己的 GitHub 账户；
-2. 在 [Cloudflare Dashboard](https://dash.cloudflare.com/) 的 Workers 中导入该仓库（Workers Builds），构建命令留空，部署命令为 `npx wrangler deploy`；
+2. 在 [Cloudflare Dashboard](https://dash.cloudflare.com/) 的 Workers 中导入该仓库（Workers Builds），构建命令留空，部署命令为 `npx wrangler deploy`（部署前会自动执行 `npm run build`）；
 3. 修改 `wrangler.jsonc` 中的 Worker 名称与自定义域名；
 4. 在 Worker 的「设置 > 变量和机密」中以 Secret 添加 `PASSWORD`（可选 `ADMINPASSWORD`、`SESSION_SECRET`）；
-5. 可选：创建 KV 命名空间并在 `wrangler.jsonc` 中以 `PLAYANY_PROXY_KV` 绑定，用于缓存代理结果；
-6. 推送到 main 分支即自动部署。
+5. 推送到 main 分支即自动部署。
 
-入口是 `worker.js`，复用 `functions/` 中的登录与代理逻辑；静态文件只发布 `.assetsignore` 白名单内的网站文件。
+入口是 `worker.js`，处理逻辑在 `lib/handler.mjs`（与 Docker 版共用）。登录与代理按客户端 IP 限流（见 `wrangler.jsonc` 的 `ratelimits`），数据源接口结果在服务端缓存 5 分钟。
 
 ### Docker
 
@@ -49,30 +48,28 @@ docker run -d --name playany-tv --restart unless-stopped \
 docker compose up -d
 ```
 
-访问 `http://localhost:8899` 即可使用。
+访问 `http://localhost:8899` 即可使用。其他配置（管理员密码、限流、反向代理）见 `.env.example`。
 
 ### 本地开发
 
 ```bash
 cp .env.example .env   # 可选
 npm install
-npm run dev
+npm run dev            # 构建 dist/ 并启动 Node 版服务，修改服务端代码后自动重启
 ```
 
-访问 `http://localhost:8080`（端口可通过 `.env` 中的 `PORT` 修改）。
+访问 `http://localhost:8080`（端口可通过 `.env` 中的 `PORT` 修改）。修改前端文件后重新运行 `npm run build`。也可以用 `npx wrangler dev` 在本地运行 Worker 版。
 
-> 使用 `python -m http.server` 这类纯静态服务器时没有代理功能，搜索无法使用，请使用 Node.js 开发服务器。
+网站文件构建到 `dist/`（`scripts/build.mjs`）：Worker、Docker 和 App 都只发布这个目录，Tailwind 样式在构建时生成。
 
-端到端测试（自动启动带测试密码的 `server.mjs`，数据源接口使用模拟数据）：
+端到端测试（先构建，再同时启动 Node 版与本地 Worker，数据源接口使用模拟数据）：
 
 ```bash
 npx playwright install chromium   # 首次运行前安装浏览器（本地默认使用已安装的 Chrome）
 npm test
 ```
 
-推送到 GitHub 后，`.github/workflows/test.yml` 会自动运行语法检查、Tailwind 产物检查与全部测试。
-
-样式使用预编译的 Tailwind：修改了页面或脚本中的 Tailwind 类名后，运行 `npm run build:css` 重新生成 `css/tailwind.css` 并一起提交（部署时不会自动构建）。
+推送到 GitHub 后，`.github/workflows/test.yml` 会自动运行语法检查与全部测试。
 
 ## 📱 iOS / Android 客户端
 
@@ -116,7 +113,7 @@ npm test
 
 - HTML + CSS + JavaScript，Tailwind CSS（预编译为 `css/tailwind.css`）
 - ArtPlayer + HLS.js 播放
-- 服务端代理：Cloudflare Workers（线上）或 Node.js `server.mjs`（Docker / 本地）
+- 服务端：Cloudflare Workers（线上）或 Node.js `server.mjs`（Docker / 本地），共用 `lib/handler.mjs`
 - Capacitor 8（iOS / Android 客户端）
 
 ## ⚠️ 免责声明

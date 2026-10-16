@@ -1,237 +1,141 @@
-import path from 'path';
-import express from 'express';
-import axios from 'axios';
-import cors from 'cors';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
+// Node 版服务（Docker / 本地运行）：请求处理与 Cloudflare Worker 共用 lib/handler.mjs，静态文件来自 npm run build 生成的 dist/。
+import http from 'node:http';
+import { createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
+import { lookup } from 'node:dns/promises';
+import path from 'node:path';
+import { Readable } from 'node:stream';
+import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
-import { authState, login, injectAuthState } from './lib/auth.mjs';
+import { handleRequest } from './lib/handler.mjs';
 import { isAllowedTarget, isPrivateAddress } from './lib/target-guard.mjs';
-import { lookup } from 'dns/promises';
+import { createRateLimiter } from './lib/rate-limit.mjs';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist');
+const PORT = Number(process.env.PORT || 8080);
+// 部署在反向代理之后时设置 TRUST_PROXY=true，限流按 X-Forwarded-For 中的客户端地址计算
+const TRUST_PROXY = process.env.TRUST_PROXY === 'true';
 
-const config = {
-  port: process.env.PORT || 8080,
-  password: process.env.PASSWORD || '',
-  adminpassword: process.env.ADMINPASSWORD || '',
-  corsOrigin: process.env.CORS_ORIGIN || '*',
-  timeout: parseInt(process.env.REQUEST_TIMEOUT || '5000'),
-  maxRetries: parseInt(process.env.MAX_RETRIES || '2'),
-  cacheMaxAge: process.env.CACHE_MAX_AGE || '1d',
-  userAgent: process.env.USER_AGENT || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-  debug: process.env.DEBUG === 'true'
+const env = {
+    PASSWORD: process.env.PASSWORD || '',
+    ADMINPASSWORD: process.env.ADMINPASSWORD || '',
+    SESSION_SECRET: process.env.SESSION_SECRET || '',
+    // 与 wrangler.jsonc 中 Worker 的限流配置一致：登录每分钟 10 次、代理每分钟 300 次（按客户端 IP）
+    LOGIN_LIMITER: createRateLimiter({ limit: Number(process.env.LOGIN_RATE_LIMIT || 10), period: 60 }),
+    PROXY_LIMITER: createRateLimiter({ limit: Number(process.env.PROXY_RATE_LIMIT || 300), period: 60 })
 };
 
-const log = (...args) => {
-  if (config.debug) {
-    console.log('[DEBUG]', ...args);
-  }
+const MIME_TYPES = {
+    '.html': 'text/html; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.txt': 'text/plain; charset=utf-8',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon',
+    '.webp': 'image/webp',
+    '.woff2': 'font/woff2'
 };
 
-const app = express();
-
-app.use(cors({
-  origin: config.corsOrigin,
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  next();
-});
-
-// 会话校验所需的配置（与 Cloudflare 中间件共用 lib/auth.mjs）
-const authEnv = {
-  PASSWORD: config.password,
-  ADMINPASSWORD: config.adminpassword,
-  SESSION_SECRET: process.env.SESSION_SECRET || ''
-};
-
-// 页面写入当前登录状态；页面因人而异，禁止缓存
-async function renderPage(filePath, req, res) {
-  const content = fs.readFileSync(filePath, 'utf8');
-  res.set('Cache-Control', 'no-store');
-  return injectAuthState(content, await authState(authEnv, req.headers.cookie));
-}
-
-// POST /auth/login  { password, type: 'user' | 'admin' }
-app.post('/auth/login', express.json(), async (req, res) => {
-  const kind = req.body && req.body.type === 'admin' ? 'admin' : 'user';
-  const cookie = await login(authEnv, kind, req.body && req.body.password, req.secure);
-  if (!cookie) {
-    // 失败时稍作延迟，降低暴力猜测速度
-    await new Promise(resolve => setTimeout(resolve, 600));
-    return res.status(401).json({ ok: false });
-  }
-  res.set('Set-Cookie', cookie).set('Cache-Control', 'no-store').json({ ok: true });
-});
-
-app.get('/auth/session', async (req, res) => {
-  res.set('Cache-Control', 'no-store').json(await authState(authEnv, req.headers.cookie));
-});
-
-// 代理只对已登录用户开放，避免被他人当作开放代理使用
-app.use('/proxy', async (req, res, next) => {
-  const state = await authState(authEnv, req.headers.cookie);
-  if (!state.authenticated) return res.status(401).set('Cache-Control', 'no-store').send('未登录');
-  next();
-});
-
-app.get(['/', '/index.html', '/player.html'], async (req, res) => {
-  try {
-    let filePath;
-    switch (req.path) {
-      case '/player.html':
-        filePath = path.join(__dirname, 'player.html');
-        break;
-      default: // '/' 和 '/index.html'
-        filePath = path.join(__dirname, 'index.html');
-        break;
-    }
-    
-    res.send(await renderPage(filePath, req, res));
-  } catch (error) {
-    console.error('页面渲染错误:', error);
-    res.status(500).send('读取静态页面失败');
-  }
-});
-
-app.get('/s=:keyword', async (req, res) => {
-  try {
-    const filePath = path.join(__dirname, 'index.html');
-    res.send(await renderPage(filePath, req, res));
-  } catch (error) {
-    console.error('搜索页面渲染错误:', error);
-    res.status(500).send('读取静态页面失败');
-  }
-});
-
-// 代理目标检查：地址本身（lib/target-guard.mjs）+ 域名解析结果都不能是内网地址，防止通过代理访问内网
+// 代理目标检查：地址本身（lib/target-guard.mjs）+ 域名解析结果都不能是内网地址
 async function isSafeTarget(urlString) {
-  if (!isAllowedTarget(urlString)) return false;
-  try {
-    const addresses = await lookup(new URL(urlString).hostname, { all: true });
-    return addresses.length > 0 && addresses.every(({ address }) => !isPrivateAddress(address));
-  } catch {
-    return false;
-  }
-}
-
-// 代理响应不能被当成本站页面执行：只放行数据/媒体类型，其余按纯文本返回，并禁止脚本执行
-const SAFE_PROXY_CONTENT_TYPE = /^(application\/(json|vnd\.apple\.mpegurl|x-mpegurl|octet-stream)|video\/|audio\/|image\/(?!svg)|text\/plain)/i;
-
-function setSafeProxyHeaders(res, contentType) {
-  res.set({
-    'Content-Type': SAFE_PROXY_CONTENT_TYPE.test(contentType || '') ? contentType : 'text/plain; charset=utf-8',
-    'X-Content-Type-Options': 'nosniff',
-    'Content-Security-Policy': 'sandbox'
-  });
-}
-
-// 代理路由
-app.get('/proxy/:encodedUrl', async (req, res) => {
-  try {
-    const encodedUrl = req.params.encodedUrl;
-    const targetUrl = decodeURIComponent(encodedUrl);
-
-    // 安全验证
-    if (!(await isSafeTarget(targetUrl))) {
-      return res.status(400).send('不允许访问的地址');
+    if (!isAllowedTarget(urlString)) return false;
+    try {
+        const addresses = await lookup(new URL(urlString).hostname, { all: true });
+        return addresses.length > 0 && addresses.every(({ address }) => !isPrivateAddress(address));
+    } catch {
+        return false;
     }
+}
 
-    log(`代理请求: ${targetUrl}`);
-
-    // 添加请求超时和重试逻辑
-    const maxRetries = config.maxRetries;
-    let retries = 0;
-    
-    const makeRequest = async () => {
-      try {
-        return await axios({
-          method: 'get',
-          url: targetUrl,
-          responseType: 'stream',
-          timeout: config.timeout,
-          maxRedirects: 5,
-          // 每次跳转前重新检查目标地址（跳转目标不能是内网）
-          beforeRedirect: (options) => {
-            const next = `${options.protocol}//${options.hostname}${options.port ? `:${options.port}` : ''}${options.path || ''}`;
-            if (!isAllowedTarget(next)) throw new Error('跳转到了不允许访问的地址');
-          },
-          headers: {
-            'User-Agent': config.userAgent,
-            // 豆瓣图床校验 Referer，不带会返回 418
-            ...(/(^|\.)doubanio\.com$/.test(new URL(targetUrl).hostname) ? { Referer: 'https://movie.douban.com/' } : {})
-          }
-        });
-      } catch (error) {
-        if (retries < maxRetries) {
-          retries++;
-          log(`重试请求 (${retries}/${maxRetries}): ${targetUrl}`);
-          return makeRequest();
+async function findFile(pathname) {
+    let relative;
+    try {
+        relative = decodeURIComponent(pathname);
+    } catch {
+        return null;
+    }
+    // 与 Cloudflare 静态资源一致：/ → index.html，/player → player.html
+    const candidates = relative.endsWith('/') ? [relative + 'index.html'] : [relative, relative + '.html'];
+    for (const candidate of candidates) {
+        const file = path.join(ROOT, candidate);
+        if (!file.startsWith(ROOT + path.sep)) return null;
+        try {
+            const info = await stat(file);
+            if (info.isFile()) return { file, info };
+        } catch {
+            // 继续尝试下一个
         }
-        throw error;
-      }
-    };
-
-    const response = await makeRequest();
-
-    // 转发响应头（过滤敏感头）
-    const headers = { ...response.headers };
-    const sensitiveHeaders = (
-      process.env.FILTERED_HEADERS || 
-      'content-security-policy,cookie,set-cookie,x-frame-options,access-control-allow-origin'
-    ).split(',');
-    
-    sensitiveHeaders.forEach(header => delete headers[header]);
-    res.set(headers);
-    setSafeProxyHeaders(res, response.headers['content-type']);
-
-    // 管道传输响应流
-    response.data.pipe(res);
-  } catch (error) {
-    console.error('代理请求错误:', error.message);
-    if (error.response) {
-      res.status(error.response.status || 500);
-      setSafeProxyHeaders(res, error.response.headers['content-type']);
-      error.response.data.pipe(res);
-    } else {
-      res.status(500).send(`请求失败: ${error.message}`);
     }
-  }
+    return null;
+}
+
+async function serveAsset(request) {
+    const { pathname } = new URL(request.url);
+    const found = await findFile(pathname);
+    if (!found) return new Response('页面未找到', { status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+
+    const lastModified = found.info.mtime.toUTCString();
+    const headers = new Headers({
+        'Content-Type': MIME_TYPES[path.extname(found.file).toLowerCase()] || 'application/octet-stream',
+        'Last-Modified': lastModified,
+        'Cache-Control': pathname.startsWith('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache'
+    });
+    if (request.headers.get('If-Modified-Since') === lastModified) return new Response(null, { status: 304, headers });
+    headers.set('Content-Length', String(found.info.size));
+    const body = request.method === 'HEAD' ? null : Readable.toWeb(createReadStream(found.file));
+    return new Response(body, { headers });
+}
+
+function clientIpOf(req) {
+    const forwarded = TRUST_PROXY && req.headers['x-forwarded-for'];
+    return (forwarded ? forwarded.split(',')[0].trim() : req.socket.remoteAddress) || '';
+}
+
+const server = http.createServer(async (req, res) => {
+    try {
+        const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+        if (TRUST_PROXY && req.headers['x-forwarded-proto'] === 'https') url.protocol = 'https:';
+        const hasBody = req.method !== 'GET' && req.method !== 'HEAD';
+        const request = new Request(url, {
+            method: req.method,
+            headers: Object.entries(req.headers).filter(([, v]) => typeof v === 'string'),
+            body: hasBody ? Readable.toWeb(req) : undefined,
+            duplex: hasBody ? 'half' : undefined
+        });
+        const response = await handleRequest(request, env, {
+            serveAsset,
+            clientIp: clientIpOf(req),
+            checkTarget: isSafeTarget
+        });
+
+        const headers = {
+            'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'SAMEORIGIN',
+            ...Object.fromEntries(response.headers)
+        };
+        // Set-Cookie 可能有多个，需要单独取出
+        const cookies = response.headers.getSetCookie();
+        if (cookies.length) headers['set-cookie'] = cookies;
+        res.writeHead(response.status, headers);
+        if (response.body && req.method !== 'HEAD') {
+            Readable.fromWeb(response.body).on('error', () => res.destroy()).pipe(res);
+        } else {
+            res.end();
+        }
+    } catch (error) {
+        console.error('请求处理错误:', error);
+        if (!res.headersSent) res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('服务器内部错误');
+    }
 });
 
-app.use(express.static(path.join(__dirname), {
-  maxAge: config.cacheMaxAge
-}));
-
-app.use((err, req, res, next) => {
-  console.error('服务器错误:', err);
-  res.status(500).send('服务器内部错误');
-});
-
-app.use((req, res) => {
-  res.status(404).send('页面未找到');
-});
-
-// 启动服务器
-app.listen(config.port, () => {
-  console.log(`服务器运行在 http://localhost:${config.port}`);
-  if (config.password !== '') {
-    console.log('用户登录密码已设置');
-  }
-  if (config.adminpassword !== '') {
-    console.log('管理员登录密码已设置');
-  }
-  if (config.debug) {
-    console.log('调试模式已启用');
-    console.log('配置:', { ...config, password: config.password ? '******' : '', adminpassword: config.adminpassword? '******' : '' });
-  }
+server.listen(PORT, () => {
+    console.log(`服务器运行在 http://localhost:${PORT}`);
+    if (env.PASSWORD) console.log('用户登录密码已设置');
+    if (env.ADMINPASSWORD) console.log('管理员登录密码已设置');
 });

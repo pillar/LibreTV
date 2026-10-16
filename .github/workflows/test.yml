@@ -14,25 +14,24 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - run: npm ci
 
       - name: 语法检查
         run: |
-          for f in js/*.js lib/*.mjs server.mjs functions/_middleware.js "functions/proxy/[[path]].js"; do
+          for f in js/*.js lib/*.mjs server.mjs worker.js scripts/*.mjs; do
             node --check "$f"
           done
 
-      - name: 检查 css/tailwind.css 是否为最新编译结果
-        run: |
-          npm run build:css
-          git diff --exit-code css/tailwind.css || (echo "::error::css/tailwind.css 已过期，请运行 npm run build:css 并提交" && exit 1)
+      - name: 检查 Worker 配置（不部署）
+        run: npx wrangler deploy --dry-run --outdir .wrangler/dry-run
 
       - name: 安装浏览器
         run: npx playwright install --with-deps chromium
 
+      # 先构建 dist/，再同时测试 Node 版 server.mjs 与本地 Worker（wrangler dev）
       - name: 端到端测试
         run: npm test
 

@@ -1,18 +1,27 @@
 {
-  // Cloudflare Workers 部署配置（Workers Builds 从 GitHub 拉取后执行 npx wrangler deploy）
+  // Cloudflare Workers 部署配置（Workers Builds 从 GitHub 拉取后执行 npx wrangler deploy，部署前会先运行下面的 build）
   // 访问密码等通过 Worker 的 Secrets 设置：PASSWORD、ADMINPASSWORD、SESSION_SECRET（可选）
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "playany-tv",
   "main": "worker.js",
   "compatibility_date": "2026-09-01",
-  "assets": {
-    // 静态文件取自仓库根目录，只发布 .assetsignore 白名单中的网站文件
-    "directory": ".",
-    "binding": "ASSETS",
-    // 页面需要注入登录状态、/proxy/ 需要鉴权，因此所有请求先进入 Worker
-    "run_worker_first": true
+  "build": {
+    "command": "npm run build"
   },
-  // 只通过自定义域名访问，与线上现状一致
+  "assets": {
+    // npm run build 生成的网站文件
+    "directory": "dist",
+    "binding": "ASSETS",
+    // 页面需要写入登录状态、/proxy/ 与 /auth/ 需要服务端处理，先进入 Worker；
+    // 带哈希的静态文件与图片直接由 Cloudflare 返回，不占用 Worker 调用次数
+    "run_worker_first": ["/*", "!/assets/*", "!/image/*", "!/css/*", "!/js/*", "!/libs/*"]
+  },
+  // 按客户端 IP 限流：登录每分钟 10 次（防止猜密码），代理每分钟 300 次（防止被当作通用代理滥用）
+  "ratelimits": [
+    { "name": "LOGIN_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } },
+    { "name": "PROXY_LIMITER", "namespace_id": "1002", "simple": { "limit": 300, "period": 60 } }
+  ],
+  // 只通过自定义域名访问
   "workers_dev": false,
   "preview_urls": false,
   "routes": [

@@ -31,6 +31,7 @@ function isAdminVerified() {
  * 向服务端提交密码，成功后服务端设置登录 Cookie
  * @param {string} password
  * @param {'PASSWORD'|'ADMINPASSWORD'} passwordType
+ * @returns {Promise<'ok'|'wrong'|'limited'|'error'>}
  */
 async function verifyPassword(password, passwordType = 'PASSWORD') {
     const type = passwordType === 'ADMINPASSWORD' ? 'admin' : 'user';
@@ -41,14 +42,21 @@ async function verifyPassword(password, passwordType = 'PASSWORD') {
             credentials: 'same-origin',
             body: JSON.stringify({ password, type })
         });
-        if (!response.ok) return false;
+        if (response.status === 429) return 'limited';
+        if (!response.ok) return 'wrong';
         window.__AUTH__ = { ...authState(), [type === 'admin' ? 'admin' : 'authenticated']: true };
-        return true;
+        return 'ok';
     } catch (error) {
         console.error('密码验证请求失败:', error);
-        return false;
+        return 'error';
     }
 }
+
+const PASSWORD_ERRORS = {
+    wrong: '密码错误，请重试',
+    limited: '尝试次数过多，请一分钟后再试',
+    error: '网络错误，请稍后重试'
+};
 
 window.isPasswordProtected = isPasswordProtected;
 window.isPasswordVerified = isPasswordVerified;
@@ -70,15 +78,15 @@ window.verifyPassword = verifyPassword;
     };
 })();
 
-// SHA-256（导入/导出配置的校验值使用），优先使用 Web Crypto
-async function sha256(message) {
+// SHA-256 十六进制摘要（导入/导出配置的校验值使用）。优先使用 Web Crypto；
+// 通过 HTTP 访问时浏览器不提供 crypto.subtle，改用 libs/sha256.min.js 提供的 window.sha256
+async function sha256Hex(message) {
     if (window.crypto && crypto.subtle && crypto.subtle.digest) {
         const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message));
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
-    // HTTP 下调用原始 js‑sha256
-    if (typeof window._jsSha256 === 'function') {
-        return window._jsSha256(message);
+    if (typeof window.sha256 === 'function') {
+        return window.sha256(message);
     }
     throw new Error('No SHA-256 implementation available.');
 }
@@ -125,9 +133,11 @@ function hidePasswordModal() {
     }
 }
 
-function showPasswordError() {
+function showPasswordError(result = 'wrong') {
     const errorElement = document.getElementById('passwordError');
-    if (errorElement) errorElement.classList.remove('hidden');
+    if (!errorElement) return;
+    errorElement.textContent = PASSWORD_ERRORS[result] || PASSWORD_ERRORS.wrong;
+    errorElement.classList.remove('hidden');
 }
 
 function hidePasswordError() {
@@ -143,14 +153,14 @@ async function handlePasswordSubmit() {
     const password = passwordInput ? passwordInput.value.trim() : '';
     const submitButton = document.getElementById('passwordSubmitBtn');
     if (submitButton) submitButton.disabled = true;
-    const ok = await verifyPassword(password);
+    const result = await verifyPassword(password);
     if (submitButton) submitButton.disabled = false;
-    if (ok) {
+    if (result === 'ok') {
         hidePasswordError();
         hidePasswordModal();
         document.dispatchEvent(new CustomEvent('passwordVerified'));
     } else {
-        showPasswordError();
+        showPasswordError(result);
         if (passwordInput) {
             passwordInput.value = '';
             passwordInput.focus();
@@ -176,12 +186,13 @@ function showAdminPasswordModal() {
         form.onsubmit = async function (event) {
             event.preventDefault();
             const password = document.getElementById('passwordInput').value.trim();
-            if (await verifyPassword(password, 'ADMINPASSWORD')) {
+            const result = await verifyPassword(password, 'ADMINPASSWORD');
+            if (result === 'ok') {
                 hidePasswordError();
                 passwordModal.style.display = 'none';
                 document.getElementById('settingsPanel').classList.add('show');
             } else {
-                showPasswordError();
+                showPasswordError(result);
             }
         };
     }

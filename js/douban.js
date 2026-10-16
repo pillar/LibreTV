@@ -443,7 +443,7 @@ function renderRecommend(tag, pageLimit, pageStart) {
         });
 }
 
-// 豆瓣接口偶尔超时或返回错误，经代理最多请求 3 次（间隔递增），都失败再试一次备用服务
+// 豆瓣接口偶尔超时或返回错误，经代理最多请求 3 次（间隔递增）
 const DOUBAN_RETRY_DELAYS = [0, 800, 2000];
 const DOUBAN_TIMEOUT = 8000;
 
@@ -467,32 +467,19 @@ async function fetchDoubanViaProxy(url) {
 }
 
 async function fetchDoubanData(url) {
+    let lastError;
     for (const [attempt, delay] of DOUBAN_RETRY_DELAYS.entries()) {
         if (delay) await new Promise(resolve => setTimeout(resolve, delay));
         try {
             return await fetchDoubanViaProxy(url);
         } catch (err) {
+            lastError = err;
             console.warn(`豆瓣 API 请求失败（第 ${attempt + 1} 次）：`, err);
-            // 未登录或被拒绝时重试没有意义
-            if (err.status === 401 || err.status === 403) throw err;
+            // 未登录、被拒绝或请求过于频繁时重试没有意义
+            if ([401, 403, 429].includes(err.status)) break;
         }
     }
-
-    const fallbackUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    try {
-        const fallbackResponse = await fetch(fallbackUrl);
-        if (!fallbackResponse.ok) {
-            throw new Error(`备用API请求失败! 状态: ${fallbackResponse.status}`);
-        }
-        const data = await fallbackResponse.json();
-        if (data && data.contents) {
-            return JSON.parse(data.contents);
-        }
-        throw new Error("无法获取有效数据");
-    } catch (fallbackErr) {
-        console.error("豆瓣 API 备用请求也失败：", fallbackErr);
-        throw fallbackErr;
-    }
+    throw lastError;
 }
 
 // 海报异步加载：先显示占位，加载完成后淡入；失败时（网页端）间隔重试，App 内由 native-app.js 改用原生请求

@@ -1,0 +1,22 @@
+{
+  // Cloudflare Workers 部署配置（Workers Builds 从 GitHub 拉取后执行 npx wrangler deploy）
+  // 访问密码等通过 Worker 的 Secrets 设置：PASSWORD、ADMINPASSWORD、SESSION_SECRET（可选）
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "playany-tv",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    // 静态文件取自仓库根目录，只发布 .assetsignore 白名单中的网站文件
+    "directory": ".",
+    "binding": "ASSETS",
+    // 页面需要注入登录状态、/proxy/ 需要鉴权，因此所有请求先进入 Worker
+    "run_worker_first": true
+  },
+  // 只通过自定义域名访问，与线上现状一致
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "tv.playany.app", "custom_domain": true }
+  ],
+  "observability": { "enabled": true }
+}

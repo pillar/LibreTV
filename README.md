@@ -22,14 +22,16 @@ PlayAny TV 是一个轻量级的在线视频搜索与观看平台，聚合多个
 
 ## 📋 部署
 
-### Cloudflare Pages
+### Cloudflare Workers
 
 1. 把本仓库推送到你自己的 GitHub 账户；
-2. 在 [Cloudflare Dashboard](https://dash.cloudflare.com/) 的 Pages 中创建项目并连接该仓库；
-3. 构建命令和输出目录都留空；
-4. 在「设置 > 环境变量」中添加 `PASSWORD`（可选 `ADMINPASSWORD`）；
-5. 可选：绑定名为 `PLAYANY_PROXY_KV` 的 KV 命名空间，用于缓存代理结果；
-6. 保存并部署。
+2. 在 [Cloudflare Dashboard](https://dash.cloudflare.com/) 的 Workers 中导入该仓库（Workers Builds），构建命令留空，部署命令为 `npx wrangler deploy`；
+3. 修改 `wrangler.jsonc` 中的 Worker 名称与自定义域名；
+4. 在 Worker 的「设置 > 变量和机密」中以 Secret 添加 `PASSWORD`（可选 `ADMINPASSWORD`、`SESSION_SECRET`）；
+5. 可选：创建 KV 命名空间并在 `wrangler.jsonc` 中以 `PLAYANY_PROXY_KV` 绑定，用于缓存代理结果；
+6. 推送到 main 分支即自动部署。
+
+入口是 `worker.js`，复用 `functions/` 中的登录与代理逻辑；静态文件只发布 `.assetsignore` 白名单内的网站文件。
 
 ### Docker
 
@@ -114,7 +116,7 @@ npm test
 
 - HTML + CSS + JavaScript，Tailwind CSS（预编译为 `css/tailwind.css`）
 - ArtPlayer + HLS.js 播放
-- 服务端代理：Cloudflare Pages Functions（线上）或 Node.js `server.mjs`（Docker / 本地）
+- 服务端代理：Cloudflare Workers（线上）或 Node.js `server.mjs`（Docker / 本地）
 - Capacitor 8（iOS / Android 客户端）
 
 ## ⚠️ 免责声明

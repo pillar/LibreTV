@@ -158,15 +158,6 @@ button, .card-hover {
     border-radius: 4px;
 }
 
-.search-button {
-    background: var(--primary-color);
-    color: var(--text-color);
-}
-
-.search-button:hover {
-    background: var(--primary-light);
-}
-
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -595,42 +586,6 @@ body {
     margin-right: 0.35rem;
 }
 
-/* 编辑按钮样式 */
-.custom-api-edit {
-    color: #3b82f6;
-    transition: color 0.2s ease;
-}
-
-.custom-api-edit:hover {
-    color: #2563eb;
-}
-
-/* 自定义API条目样式改进 */
-#customApisList .api-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.25rem 0.5rem;
-    margin-bottom: 0.25rem;
-    background-color: #222;
-    border-radius: 0.25rem;
-    transition: background-color 0.2s ease;
-}
-
-#customApisList .api-item:hover {
-    background-color: #2a2a2a;
-}
-
-/* 成人内容标签样式 */
-.adult-tag {
-    display: inline-flex;
-    align-items: center;
-    color: #ff6b8b;
-    font-size: 0.7rem;
-    font-weight: 500;
-    margin-right: 0.35rem;
-}
-
 /* 历史记录面板样式 */
 .history-panel {
     box-shadow: 2px 0 10px rgba(0,0,0,0.5);
@@ -670,14 +625,6 @@ body {
 }
 
 /* 添加组悬停效果，使删除按钮在悬停时显示 */
-.history-item .delete-btn {
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.history-item:hover .delete-btn {
-    opacity: 1;
-}
 
 .history-info {
     padding: 0; /* 移除额外的内边距 */
@@ -717,19 +664,6 @@ body {
 
 .history-separator {
     color: #666;
-}
-
-.history-thumbnail {
-    width: 100%;
-    height: 90px;
-    background-color: #222;
-    overflow: hidden;
-}
-
-.history-thumbnail img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
 }
 
 .history-info {
@@ -794,7 +728,6 @@ body {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
 }
-
 
 /* 播放器顶部header移动端优化 */
 .player-header {
@@ -986,15 +919,6 @@ body {
 #modal .detail-desc-content::-webkit-scrollbar-thumb {
     background-color: #444;
     border-radius: 4px;
-}
-
-/* 集数统计信息样式 */
-#modal .episode-stats {
-    color: #9ca3af;
-    font-size: 0.875rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
 }
 
 /* 移动端优化 */

@@ -2,6 +2,16 @@
 
 const DETAIL_TIMEOUT = 10000;
 
+/** 自定义数据源（设置面板中添加，存于 localStorage）；首页与播放页都会用到 */
+function getCustomApiInfo(customApiIndex) {
+    const index = parseInt(customApiIndex);
+    const list = JSON.parse(localStorage.getItem('customAPIs') || '[]');
+    if (isNaN(index) || index < 0 || index >= list.length) {
+        return null;
+    }
+    return list[index];
+}
+
 /** 数据源配置：内置源（API_SITES 的键）或自定义源（custom_序号） */
 function resolveDetailSource(sourceCode) {
     if (sourceCode.startsWith('custom_')) {

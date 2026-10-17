@@ -19,6 +19,17 @@ test('搜索页地址 /s=关键词 返回首页并写入登录状态', async ({ 
     expect(response.headers()['cache-control']).toBe('no-store');
 });
 
+test('带 .html 的页面地址直接返回页面，不跳转到去掉扩展名的地址', async ({ request }) => {
+    for (const path of ['/player.html?source=bfzy&id=1', '/index.html']) {
+        const response = await request.get(path, { maxRedirects: 0 });
+        expect(response.status(), path).toBe(200);
+        expect(await response.text(), path).toContain('"passwordRequired":true');
+    }
+    const about = await request.get('/about.html', { maxRedirects: 0 });
+    expect(about.status()).toBe(200);
+    expect(await about.text()).toContain('<title>');
+});
+
 test('代理只接受 GET 请求', async ({ page }) => {
     await login(page);
     const response = await page.request.post('/proxy/' + encodeURIComponent('https://example.com/'));

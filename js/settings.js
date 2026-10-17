@@ -17,8 +17,6 @@ function initAPICheckboxes() {
     // 创建普通API源的复选框
     Object.keys(API_SITES).forEach(apiKey => {
         const api = API_SITES[apiKey];
-        if (api.adult) return; // 跳过成人内容API，稍后添加
-
         const checked = selectedAPIs.includes(apiKey);
 
         const checkbox = document.createElement('div');
@@ -40,69 +38,14 @@ function initAPICheckboxes() {
     });
     container.appendChild(normaldiv);
 
-    // 添加成人API列表
-    addAdultAPI();
-
     // 初始检查成人内容状态
     checkAdultAPIsSelected();
 }
 
-// 添加成人API列表
-function addAdultAPI() {
-    // 仅在隐藏设置为false时添加成人API组
-    if (!HIDE_BUILTIN_ADULT_APIS && (localStorage.getItem('yellowFilterEnabled') === 'false')) {
-        const container = document.getElementById('apiCheckboxes');
-
-        // 添加成人API组标题
-        const adultdiv = document.createElement('div');
-        adultdiv.id = 'adultdiv';
-        adultdiv.className = 'grid grid-cols-2 gap-2';
-        const adultTitle = document.createElement('div');
-        adultTitle.className = 'api-group-title adult';
-        adultTitle.innerHTML = `黄色资源采集站 <span class="adult-warning">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-        </span>`;
-        adultdiv.appendChild(adultTitle);
-
-        // 创建成人API源的复选框
-        Object.keys(API_SITES).forEach(apiKey => {
-            const api = API_SITES[apiKey];
-            if (!api.adult) return; // 仅添加成人内容API
-
-            const checked = selectedAPIs.includes(apiKey);
-
-            const checkbox = document.createElement('div');
-            checkbox.className = 'flex items-center';
-            checkbox.innerHTML = `
-                <input type="checkbox" id="api_${apiKey}" 
-                       class="form-checkbox h-3 w-3 text-blue-600 bg-[#222] border border-[#333] api-adult" 
-                       ${checked ? 'checked' : ''} 
-                       data-api="${apiKey}">
-                <label for="api_${apiKey}" class="ml-1 text-xs text-pink-400 truncate">${api.name}</label>
-            `;
-            adultdiv.appendChild(checkbox);
-
-            // 添加事件监听器
-            checkbox.querySelector('input').addEventListener('change', function () {
-                updateSelectedAPIs();
-                checkAdultAPIsSelected();
-            });
-        });
-        container.appendChild(adultdiv);
-    }
-}
-
 // 检查是否有成人API被选中
 function checkAdultAPIsSelected() {
-    // 查找所有内置成人API复选框
-    const adultBuiltinCheckboxes = document.querySelectorAll('#apiCheckboxes .api-adult:checked');
-
-    // 查找所有自定义成人API复选框
-    const customApiCheckboxes = document.querySelectorAll('#customApisList .api-adult:checked');
-
-    const hasAdultSelected = adultBuiltinCheckboxes.length > 0 || customApiCheckboxes.length > 0;
+    // 自定义数据源中标记为成人内容的源（内置源没有成人内容）
+    const hasAdultSelected = document.querySelectorAll('#customApisList .api-adult:checked').length > 0;
 
     const yellowFilterToggle = document.getElementById('yellowFilterToggle');
     const yellowFilterContainer = yellowFilterToggle.closest('div').parentNode;

@@ -16,7 +16,6 @@ function showTagManageModal() {
     // 当前使用的标签类型和默认标签
     const isMovie = doubanMovieTvCurrentSwitch === 'movie';
     const currentTags = isMovie ? movieTags : tvTags;
-    const defaultTags = isMovie ? defaultMovieTags : defaultTvTags;
     
     // 模态框内容
     modal.innerHTML = `

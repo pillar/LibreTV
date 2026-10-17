@@ -136,15 +136,6 @@ function hideLoading() {
     loading.style.display = 'none';
 }
 
-function updateSiteStatus(isAvailable) {
-    const statusEl = document.getElementById('siteStatus');
-    if (isAvailable) {
-        statusEl.innerHTML = '<span class="text-green-500">●</span> 可用';
-    } else {
-        statusEl.innerHTML = '<span class="text-red-500">●</span> 不可用';
-    }
-}
-
 function closeModal() {
     document.getElementById('modal').classList.add('hidden');
     document.getElementById('modalContent').innerHTML = '';

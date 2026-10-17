@@ -105,19 +105,6 @@ function setupEventListeners() {
     if (yellowFilterToggle) {
         yellowFilterToggle.addEventListener('change', function (e) {
             localStorage.setItem('yellowFilterEnabled', e.target.checked);
-
-            // 控制黄色内容接口的显示状态
-            const adultdiv = document.getElementById('adultdiv');
-            if (adultdiv) {
-                if (e.target.checked === true) {
-                    adultdiv.style.display = 'none';
-                } else if (e.target.checked === false) {
-                    adultdiv.style.display = ''
-                }
-            } else {
-                // 添加成人API列表
-                addAdultAPI();
-            }
         });
     }
 

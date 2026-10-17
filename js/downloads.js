@@ -318,13 +318,10 @@
                 return downloaded && downloaded.status === 'done' ? api.localUrl(downloaded.id) : url;
             }));
             const index = Math.max(0, series.episodes.indexOf(item.url));
-            localStorage.setItem('currentEpisodes', JSON.stringify(episodes));
-            localStorage.setItem('currentVideoTitle', item.title);
-            const params = new URLSearchParams({ url: episodes[index], title: item.title, index: String(index), offline: '1', series: item.seriesKey });
-            if (series.vodId) params.set('id', series.vodId);
-            if (series.sourceCode) params.set('source', series.sourceCode);
-            // 始终在顶层页面打开，iframe 内拿不到原生能力
-            (window.top || window).location.href = `player.html?${params.toString()}`;
+            openPlayer(
+                { url: episodes[index], title: item.title, index, offline: 1, series: item.seriesKey, id: series.vodId || '', source: series.sourceCode || '' },
+                { title: item.title, poster: '', episodes }
+            );
         }
     };
 

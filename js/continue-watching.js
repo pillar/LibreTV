@@ -42,7 +42,7 @@
         section.querySelectorAll('.cw-card').forEach(card => {
             card.addEventListener('click', () => {
                 const item = history[Number(card.dataset.index)];
-                playFromHistory(item.url, item.title, Number(item.episodeIndex) || 0, Number(item.playbackPosition) || 0);
+                playFromHistory(item.url);
             });
         });
     }

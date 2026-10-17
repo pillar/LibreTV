@@ -65,7 +65,8 @@ test('页面带有 CSP，首页的搜索、详情、历史、豆瓣推荐都能�
 test('播放页带有 CSP，选集、锁定、返回等操作正常', async ({ page }) => {
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.addInitScript(() => localStorage.setItem('currentEpisodes', JSON.stringify(['https://media.example/1.m3u8', 'https://media.example/2.m3u8'])));
+    // 打开播放页前保存的剧集列表（js/play-context.js；网址里没有 source、id 时键为 playContext::）
+    await page.addInitScript(() => sessionStorage.setItem('playContext::', JSON.stringify({ title: 'Demo', episodes: ['https://media.example/1.m3u8', 'https://media.example/2.m3u8'] })));
     await page.goto('/player.html?url=' + encodeURIComponent('https://media.example/1.m3u8') + '&title=Demo&index=0');
     await expect(page.locator('#episodesList button')).toHaveCount(2);
     await page.click('#lockToggle');

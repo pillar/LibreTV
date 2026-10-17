@@ -147,7 +147,6 @@ function updateSiteStatus(isAvailable) {
 
 function closeModal() {
     document.getElementById('modal').classList.add('hidden');
-    // 清除 iframe 内容
     document.getElementById('modalContent').innerHTML = '';
 }
 

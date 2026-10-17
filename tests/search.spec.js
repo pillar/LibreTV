@@ -58,7 +58,7 @@ test('播放页 URL 参数中的恶意内容不会被执行，javascript: 返回
         url: 'https://media.example/none.m3u8',
         title: '<img src=x onerror="window.__pwn=6">',
         source: '<img src=x onerror="window.__pwn=7">',
-        returnUrl: 'javascript:window.__pwn=8'
+        back: 'javascript:window.__pwn=8'
     });
     await page.goto('/player.html?' + params);
     await expect(page.locator('#resourceInfoBarContainer .resource-info-bar-left span').first()).toHaveText('<img src=x onerror="window.__pwn=7">');

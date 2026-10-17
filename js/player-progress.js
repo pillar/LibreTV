@@ -41,8 +41,8 @@ function saveToHistory() {
 
     // 尝试从URL中获取参数
     const urlParams = new URLSearchParams(window.location.search);
-    const sourceName = urlParams.get('source') || '';
     const sourceCode = urlParams.get('source') || '';
+    const sourceName = (API_SITES[sourceCode] && API_SITES[sourceCode].name) || sourceCode;
     const id_from_params = urlParams.get('id'); // Get video ID from player URL (passed as 'id')
 
     // 获取当前播放进度
@@ -66,10 +66,11 @@ function saveToHistory() {
     const videoInfo = {
         title: currentVideoTitle,
         directVideoUrl: currentVideoUrl, // Current episode's direct URL
-        url: `player.html?url=${encodeURIComponent(currentVideoUrl)}&title=${encodeURIComponent(currentVideoTitle)}&source=${encodeURIComponent(sourceName)}&source_code=${encodeURIComponent(sourceCode)}&id=${encodeURIComponent(id_from_params || '')}&index=${currentEpisodeIndex}&position=${Math.floor(currentPosition || 0)}`,
+        // 条目标识：删除、继续播放时按它查找（继续播放按下面的字段重新生成播放页地址，见 js/history.js）
+        url: buildPlayerUrl({ source: sourceCode, id: id_from_params || '', title: currentVideoTitle, index: currentEpisodeIndex, url: currentVideoUrl }),
         episodeIndex: currentEpisodeIndex,
         sourceName: sourceName,
-        poster: localStorage.getItem('currentVideoPoster') || '',
+        poster: currentVideoPoster,
         vod_id: id_from_params || '', // Store the ID from params as vod_id in history item
         sourceCode: sourceCode,
         showIdentifier: show_identifier_for_video_info, // Identifier for the show/series

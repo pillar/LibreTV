@@ -11,20 +11,9 @@ function sameOriginUrl(value) {
     }
 }
 
-// 改进返回功能
-// 左上角 Logo：回到首页；在首页的 iframe 中打开时，关闭播放器回到首页
+// 左上角 Logo：回到首页
 function goHome(event) {
     if (event) event.preventDefault();
-    if (window.self !== window.top) {
-        try {
-            if (typeof window.parent.closeVideoPlayer === 'function') {
-                window.parent.closeVideoPlayer(true);
-                return;
-            }
-        } catch (e) {
-            console.error('调用父窗口closeVideoPlayer失败:', e);
-        }
-    }
     window.location.href = '/';
 }
 
@@ -33,77 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (homeButton) homeButton.addEventListener('click', goHome);
 });
 
+// 返回：回到打开播放页的页面（网址参数 back，只接受本站页面），没有时回首页
 function goBack(event) {
-    // 防止默认链接行为
     if (event) event.preventDefault();
-    
-    // 1. 优先检查URL参数中的returnUrl
-    const urlParams = new URLSearchParams(window.location.search);
-    const returnUrl = urlParams.get('returnUrl');
-    
-    const safeReturnUrl = returnUrl && sameOriginUrl(decodeURIComponent(returnUrl));
-    if (safeReturnUrl) {
-        // 如果URL中有returnUrl参数，优先使用
-        window.location.href = safeReturnUrl;
-        return;
-    }
-    
-    // 2. 检查localStorage中保存的lastPageUrl
-    const lastPageUrl = sameOriginUrl(localStorage.getItem('lastPageUrl'));
-    if (lastPageUrl && lastPageUrl !== window.location.href) {
-        window.location.href = lastPageUrl;
-        return;
-    }
-    
-    // 3. 检查是否是从搜索页面进入的播放器
-    const referrer = document.referrer;
-    
-    // 检查 referrer 是否包含搜索参数
-    if (referrer && (referrer.includes('/s=') || referrer.includes('?s='))) {
-        // 如果是从搜索页面来的，返回到搜索页面
-        window.location.href = referrer;
-        return;
-    }
-    
-    // 4. 如果是在iframe中打开的，尝试关闭iframe
-    if (window.self !== window.top) {
-        try {
-            // 尝试调用父窗口的关闭播放器函数
-            window.parent.closeVideoPlayer && window.parent.closeVideoPlayer();
-            return;
-        } catch (e) {
-            console.error('调用父窗口closeVideoPlayer失败:', e);
-        }
-    }
-    
-    // 5. 无法确定上一页，则返回首页
-    if (!referrer || referrer === '') {
-        window.location.href = '/';
-        return;
-    }
-    
-    // 6. 以上都不满足，使用默认行为：返回上一页
-    window.history.back();
+    window.location.href = sameOriginUrl(new URLSearchParams(window.location.search).get('back')) || '/';
 }
-
-// 页面加载时保存当前URL到localStorage，作为返回目标
-window.addEventListener('load', function () {
-    // 保存前一页面URL
-    if (document.referrer && document.referrer !== window.location.href) {
-        localStorage.setItem('lastPageUrl', document.referrer);
-    }
-
-    // 提取当前URL中的重要参数，以便在需要时能够恢复当前页面
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoId = urlParams.get('id');
-    const sourceCode = urlParams.get('source');
-
-    if (videoId && sourceCode) {
-        // 保存当前播放状态，以便其他页面可以返回
-        localStorage.setItem('currentPlayingId', videoId);
-        localStorage.setItem('currentPlayingSource', sourceCode);
-    }
-});
 
 
 // =================================
@@ -115,6 +38,7 @@ let currentEpisodeIndex = 0;
 let art = null; // 用于 ArtPlayer 实例
 let currentHls = null; // 跟踪当前HLS实例
 let currentEpisodes = [];
+let currentVideoPoster = ''; // 写入观看历史，供「继续观看」显示
 let episodesReversed = false;
 let autoplayEnabled = true; // 默认开启自动连播
 let videoHasEnded = false; // 跟踪视频是否已经自然结束
@@ -153,56 +77,22 @@ document.addEventListener('passwordVerified', () => {
 // 初始化页面内容
 function initializePageContent() {
 
-    // 解析URL参数
+    // 网址参数与打开前保存的剧集列表（见 js/play-context.js）
     const urlParams = new URLSearchParams(window.location.search);
-    let videoUrl = urlParams.get('url');
-    const title = urlParams.get('title');
-    const sourceCode = urlParams.get('source');
+    const sourceCode = urlParams.get('source') || '';
+    const vodId = urlParams.get('id') || '';
+    const offline = urlParams.get('offline') === '1';
+    const context = readPlayContext({ source: sourceCode, id: vodId, series: offline ? urlParams.get('series') : '' });
+    currentEpisodes = context ? context.episodes : [];
+    currentVideoPoster = (context && context.poster) || '';
+    currentVideoTitle = urlParams.get('title') || (context && context.title) || '未知视频';
     let index = parseInt(urlParams.get('index') || '0');
-    const episodesList = urlParams.get('episodes'); // 从URL获取集数信息
-    const savedPosition = parseInt(urlParams.get('position') || '0'); // 获取保存的播放位置
-    // 解决历史记录问题：检查URL是否是player.html开头的链接
-    // 如果是，说明这是历史记录重定向，需要解析真实的视频URL
-    if (videoUrl && videoUrl.includes('player.html')) {
-        try {
-            // 尝试从嵌套URL中提取真实的视频链接
-            const nestedUrlParams = new URLSearchParams(videoUrl.split('?')[1]);
-            // 从嵌套参数中获取真实视频URL
-            const nestedVideoUrl = nestedUrlParams.get('url');
-            // 检查嵌套URL是否包含播放位置信息
-            const nestedPosition = nestedUrlParams.get('position');
-            const nestedIndex = nestedUrlParams.get('index');
-            const nestedTitle = nestedUrlParams.get('title');
-
-            if (nestedVideoUrl) {
-                videoUrl = nestedVideoUrl;
-
-                // 更新当前URL参数
-                const url = new URL(window.location.href);
-                if (!urlParams.has('position') && nestedPosition) {
-                    url.searchParams.set('position', nestedPosition);
-                }
-                if (!urlParams.has('index') && nestedIndex) {
-                    url.searchParams.set('index', nestedIndex);
-                }
-                if (!urlParams.has('title') && nestedTitle) {
-                    url.searchParams.set('title', nestedTitle);
-                }
-                // 替换当前URL
-                window.history.replaceState({}, '', url);
-            } else {
-                showError('历史记录链接无效，请返回首页重新访问');
-            }
-        } catch (e) {
-        }
-    }
-
-    // 保存当前视频URL
-    currentVideoUrl = videoUrl || '';
-
-    // 从localStorage获取数据
-    currentVideoTitle = title || localStorage.getItem('currentVideoTitle') || '未知视频';
+    if (!(index >= 0)) index = 0;
+    if (currentEpisodes.length && index >= currentEpisodes.length) index = currentEpisodes.length - 1;
     currentEpisodeIndex = index;
+    const videoUrl = urlParams.get('url') || currentEpisodes[index] || '';
+    currentVideoUrl = videoUrl;
+    episodesReversed = localStorage.getItem('episodesReversed') === 'true';
 
     // 设置自动连播开关状态
     autoplayEnabled = localStorage.getItem('autoplayEnabled') !== 'false'; // 默认为true
@@ -217,52 +107,18 @@ function initializePageContent() {
         localStorage.setItem('autoplayEnabled', autoplayEnabled);
     });
 
-    // 优先使用URL传递的集数信息，否则从localStorage获取
-    try {
-        if (episodesList) {
-            // 如果URL中有集数数据，优先使用它
-            currentEpisodes = JSON.parse(decodeURIComponent(episodesList));
-
-        } else {
-            // 否则从localStorage获取
-            currentEpisodes = JSON.parse(localStorage.getItem('currentEpisodes') || '[]');
-
-        }
-
-        // 检查集数索引是否有效，如果无效则调整为0
-        if (index < 0 || (currentEpisodes.length > 0 && index >= currentEpisodes.length)) {
-            // 如果索引太大，则使用最大有效索引
-            if (index >= currentEpisodes.length && currentEpisodes.length > 0) {
-                index = currentEpisodes.length - 1;
-            } else {
-                index = 0;
-            }
-
-            // 更新URL以反映修正后的索引
-            const newUrl = new URL(window.location.href);
-            newUrl.searchParams.set('index', index);
-            window.history.replaceState({}, '', newUrl);
-        }
-
-        // 更新当前索引为验证过的值
-        currentEpisodeIndex = index;
-
-        episodesReversed = localStorage.getItem('episodesReversed') === 'true';
-    } catch (e) {
-        currentEpisodes = [];
-        currentEpisodeIndex = 0;
-        episodesReversed = false;
-    }
-
     // 设置页面标题
     document.title = currentVideoTitle + ' - PlayAny TV';
     document.getElementById('videoTitle').textContent = currentVideoTitle;
 
-    // 初始化播放器
-    if (videoUrl) {
-        initPlayer(videoUrl);
-    } else {
+    // 初始化播放器；没有剧集列表（新标签页打开）或来自观看历史时，按 source + id 获取最新的列表
+    if (videoUrl) initPlayer(videoUrl);
+    if (!offline && sourceCode && vodId && (!context || context.refresh)) {
+        refreshEpisodes(sourceCode, vodId);
+    } else if (!videoUrl) {
         showError('无效的视频链接');
+    } else if (!currentEpisodes.length) {
+        currentEpisodes = [videoUrl];
     }
 
     // 渲染源信息
@@ -311,6 +167,32 @@ function initializePageContent() {
             clearInterval(waitForVideo);
         }
     }, 200);
+}
+
+// 获取最新的剧集列表；还没有在播的视频时（网址只有 source + id）从列表中取当前集开始播放
+async function refreshEpisodes(sourceCode, vodId) {
+    try {
+        const data = await fetchVideoDetail(vodId, sourceCode);
+        if (!data.episodes.length) throw new Error('没有可播放的剧集');
+        currentEpisodes = data.episodes;
+        if (!currentVideoPoster) currentVideoPoster = safeHttpUrl(data.videoInfo && data.videoInfo.cover);
+        if (currentEpisodeIndex >= currentEpisodes.length) currentEpisodeIndex = currentEpisodes.length - 1;
+        if (!currentVideoUrl) {
+            currentVideoUrl = currentEpisodes[currentEpisodeIndex];
+            initPlayer(currentVideoUrl);
+        }
+    } catch (error) {
+        console.warn('获取剧集列表失败，使用已有的列表:', error);
+        if (!currentVideoUrl) {
+            showError('获取剧集失败，请返回重试或换一个数据源');
+            return;
+        }
+        if (!currentEpisodes.length) currentEpisodes = [currentVideoUrl];
+    }
+    renderResourceInfoBar();
+    updateEpisodeInfo();
+    renderEpisodes();
+    updateButtonStates();
 }
 
 // 初始化播放器
@@ -760,10 +642,6 @@ function playEpisode(index) {
         <div class="loading-spinner"></div>
         <div>正在加载视频...</div>
     `;
-
-    // 获取 sourceCode
-    const urlParams2 = new URLSearchParams(window.location.search);
-    const sourceCode = urlParams2.get('source_code');
 
     // 准备切换剧集的URL
     const url = currentEpisodes[index];

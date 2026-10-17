@@ -1,12 +1,4 @@
-/* 
-PlayAny TV 全局样式
-包含多个页面共享的基础样式
-对于特定页面的样式，请参考:
-- index.css: 首页特定样式
-- player.css: 播放器页面特定样式
-- watch.css: 重定向页面特定样式
-- modals.css: 模态框和提示框样式
-*/
+/* PlayAny TV 基础样式（各页面共用）；改版后的外观在 css/theme.css，播放页专用样式在 css/player.css */
 
 .close-btn {
     position: absolute;

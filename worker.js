@@ -46,7 +46,7 @@ function strictLimiter(env, name) {
     };
 }
 
-// 代理：每次都等 Durable Object 会让每个请求多花约 90ms（线上实测）。改为不等待：计数在后台（waitUntil）进行，
+// 代理（只对未命中服务端缓存、真正请求源站的请求计数，见 lib/handler.mjs 的 cachedProxyFetch）：每次都等 Durable Object 会让每个请求多花约 90ms（线上实测）。改为不等待：计数在后台（waitUntil）进行，
 // 得知超限后，当前 Worker 实例在窗口结束前直接拒绝该客户端。
 // 每个请求都计数（不在实例内攒批）：线上请求分散在许多实例上，攒批时多数实例迟迟得不到超限结果，实测几乎拦不住。
 // 代价是超限后每个实例最多多放行正在计数中的少数请求。

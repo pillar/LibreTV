@@ -10,9 +10,10 @@ test('代理请求超过每分钟 300 次后返回 429，之后持续拒绝', as
     const statuses = [];
     for (let i = 0; i < 400; i++) statuses.push((await page.request.get(blocked)).status());
     const first429 = statuses.indexOf(429);
-    // 代理计数每 10 次汇总一次，超限后最多多放行一批
-    expect(first429).toBeGreaterThanOrEqual(300);
-    expect(first429).toBeLessThanOrEqual(330);
+    // 代理计数在后台进行，超限后可能多放行正在计数中的少数请求
+    // 同一分钟内先运行的 worker 项目测试也用过代理（同一 IP），因此下限略低于 300
+    expect(first429).toBeGreaterThanOrEqual(270);
+    expect(first429).toBeLessThanOrEqual(305);
     expect(statuses.slice(0, first429).every(status => status === 400)).toBe(true);
     expect(statuses.slice(first429).every(status => status === 429)).toBe(true);
 });

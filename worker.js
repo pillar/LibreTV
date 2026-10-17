@@ -13,15 +13,15 @@ const LIMITS = {
 /**
  * 限流计数：每个「用途 + 客户端」对应一个 Durable Object 实例，计数强一致。
  * （Cloudflare 的 Rate Limiting 绑定按机器近似计数，实测在线上连续 350 次请求都没有触发限制，因此不用它。）
- * hit 一次可以计入多次请求（代理请求在 Worker 内先累计，见 batchedLimiter），返回是否仍在限额内及本窗口结束时间。
+ * hit 返回是否仍在限额内及本窗口结束时间（代理据此在 Worker 内暂时拒绝，见 backgroundLimiter）。
  */
 export class RateLimiter extends DurableObject {
-    hit(limit, periodMs, count = 1) {
+    hit(limit, periodMs) {
         const now = Date.now();
         const storage = this.ctx.storage.kv;
         let window = storage.get('window');
         if (!window || now - window.start >= periodMs) window = { start: now, count: 0 };
-        window.count += count;
+        window.count++;
         storage.put('window', window);
         return { success: window.count <= limit, resetAt: window.start + periodMs };
     }
@@ -46,36 +46,27 @@ function strictLimiter(env, name) {
     };
 }
 
-// 代理：每次都等 Durable Object 会让每个请求多花约 90ms（线上实测），且每个请求都计一次 Durable Object 调用。
-// 改为在当前 Worker 实例内累计，每 PROXY_BATCH 次在后台（waitUntil）汇总一次；得知超限后，本实例在窗口结束前直接拒绝。
-// 代价是超限后每个 Worker 实例最多多放行约 PROXY_BATCH 次请求，对防止被当作通用代理滥用没有影响。
-const PROXY_BATCH = 10;
+// 代理：每次都等 Durable Object 会让每个请求多花约 90ms（线上实测）。改为不等待：计数在后台（waitUntil）进行，
+// 得知超限后，当前 Worker 实例在窗口结束前直接拒绝该客户端。
+// 每个请求都计数（不在实例内攒批）：线上请求分散在许多实例上，攒批时多数实例迟迟得不到超限结果，实测几乎拦不住。
+// 代价是超限后每个实例最多多放行正在计数中的少数请求。
 const MAX_LOCAL_KEYS = 10_000;
-const localCounts = new Map();   // key → { pending, blockedUntil }
+const blockedUntil = new Map();   // key → 窗口结束时间
 
-function batchedLimiter(env, name, waitUntil) {
+function backgroundLimiter(env, name, waitUntil) {
     const { limit, periodMs } = limitOf(env, name);
     return {
         async limit({ key }) {
-            const now = Date.now();
-            let entry = localCounts.get(key);
-            if (!entry) {
-                // Map 按插入顺序迭代，淘汰最早记录的键（不整表清空，以免已超限的键被一起解除）
-                if (localCounts.size >= MAX_LOCAL_KEYS) localCounts.delete(localCounts.keys().next().value);
-                entry = { pending: 0, blockedUntil: 0 };
-                localCounts.set(key, entry);
-            }
-            if (entry.blockedUntil > now) return { success: false };
-            entry.pending++;
-            if (entry.pending >= PROXY_BATCH) {
-                const count = entry.pending;
-                entry.pending = 0;
-                waitUntil(stubOf(env, name, key).hit(limit, periodMs, count)
-                    .then(result => {
-                        if (!result.success) entry.blockedUntil = result.resetAt;
-                    })
-                    .catch(error => console.error('限流计数失败:', error)));
-            }
+            if ((blockedUntil.get(key) || 0) > Date.now()) return { success: false };
+            waitUntil(stubOf(env, name, key).hit(limit, periodMs)
+                .then(result => {
+                    if (result.success) return;
+                    blockedUntil.delete(key);
+                    // Map 按插入顺序迭代，超出上限时淘汰最早记录的键
+                    if (blockedUntil.size >= MAX_LOCAL_KEYS) blockedUntil.delete(blockedUntil.keys().next().value);
+                    blockedUntil.set(key, result.resetAt);
+                })
+                .catch(error => console.error('限流计数失败:', error)));
             return { success: true };
         }
     };
@@ -87,7 +78,7 @@ export default {
         return handleRequest(request, {
             ...env,
             LOGIN_LIMITER: strictLimiter(env, 'login'),
-            PROXY_LIMITER: batchedLimiter(env, 'proxy', waitUntil)
+            PROXY_LIMITER: backgroundLimiter(env, 'proxy', waitUntil)
         }, {
             serveAsset: req => env.ASSETS.fetch(req),
             clientIp: request.headers.get('CF-Connecting-IP') || '',

@@ -7,6 +7,8 @@ const SHORT_DRAMA_CLASSES_TTL = 24 * 60 * 60 * 1000;
 const SHORT_DRAMA_TIMEOUT = 10000;
 const SHORT_DRAMA_LATEST = '最新';
 const SHORT_DRAMA_MAX_CARDS = 30;
+// 每个分类每次取的条数（支持 pagesize 参数的站点按此返回，可减少一半以上的数据量；不支持的站点仍返回 20 条）
+const SHORT_DRAMA_PAGE_SIZE = 8;
 
 // 当前显示的卡片对应的数据源列表（点击卡片时用）
 let shortDramaGroups = [];
@@ -72,31 +74,47 @@ async function shortDramaClassesOf(apiId) {
     return entry;
 }
 
-/** 某个标签第 page 页：各资源站对应分类的结果合并（同名剧合并为一项） */
-async function fetchShortDramaPage(tag, page) {
-    const sources = SHORT_DRAMA_SOURCES.filter(apiId => API_SITES[apiId] && !isSourceUnavailable(apiId));
-    const lists = await Promise.all(sources.map(async apiId => {
-        try {
-            const classes = await shortDramaClassesOf(apiId);
-            const typeIds = tag === SHORT_DRAMA_LATEST ? classes.latest : (classes.genres[tag] || []);
-            const pages = await Promise.all(typeIds.map(async typeId => {
-                const data = await fetchShortDramaJson(`${API_SITES[apiId].api}?ac=videolist&t=${encodeURIComponent(typeId)}&pg=${page}`);
-                return Array.isArray(data && data.list) ? data.list : [];
-            }));
-            return pages.flat().map(item => ({ ...item, source_code: apiId, source_name: API_SITES[apiId].name }));
-        } catch (error) {
-            console.warn(`${API_SITES[apiId].name} 短剧获取失败:`, error);
-            return [];
-        }
-    }));
-    // 各站内部按更新时间排序后轮流取，避免更新最频繁的一个站占满整页
-    const byTime = (a, b) => String(b.vod_time || '').localeCompare(String(a.vod_time || ''));
-    const queues = lists.map(list => list.filter(item => item && item.vod_id && item.vod_name).sort(byTime));
-    const items = [];
-    for (let i = 0; queues.some(queue => i < queue.length); i++) {
-        for (const queue of queues) if (i < queue.length) items.push(queue[i]);
+/** 某个资源站某个标签第 page 页的短剧（失败时为空） */
+async function fetchShortDramaSource(apiId, tag, page) {
+    try {
+        const classes = await shortDramaClassesOf(apiId);
+        const typeIds = tag === SHORT_DRAMA_LATEST ? classes.latest : (classes.genres[tag] || []);
+        const pages = await Promise.all(typeIds.map(async typeId => {
+            const data = await fetchShortDramaJson(`${API_SITES[apiId].api}?ac=videolist&t=${encodeURIComponent(typeId)}&pg=${page}&pagesize=${SHORT_DRAMA_PAGE_SIZE}`);
+            return Array.isArray(data && data.list) ? data.list : [];
+        }));
+        return pages.flat()
+            .filter(item => item && item.vod_id && item.vod_name)
+            .map(item => ({ ...item, source_code: apiId, source_name: API_SITES[apiId].name }));
+    } catch (error) {
+        console.warn(`${API_SITES[apiId].name} 短剧获取失败:`, error);
+        return [];
     }
-    return mergeSearchResults(items).slice(0, SHORT_DRAMA_MAX_CARDS);
+}
+
+/**
+ * 某个标签第 page 页：各资源站对应分类的结果合并（同名剧合并为一项）。
+ * 哪个站先返回就先显示：每个站返回后都以目前已返回的结果调用 onUpdate(groups, finished)。
+ */
+async function fetchShortDramaPage(tag, page, onUpdate) {
+    const sources = SHORT_DRAMA_SOURCES.filter(apiId => API_SITES[apiId] && !isSourceUnavailable(apiId));
+    // 各站内部按更新时间排序后轮流取，避免更新最频繁的一个站占满整页；按配置顺序轮流，结果不受返回先后影响
+    const byTime = (a, b) => String(b.vod_time || '').localeCompare(String(a.vod_time || ''));
+    const queues = sources.map(() => []);
+    let pending = sources.length;
+    const merged = () => {
+        const items = [];
+        for (let i = 0; queues.some(queue => i < queue.length); i++) {
+            for (const queue of queues) if (i < queue.length) items.push(queue[i]);
+        }
+        return mergeSearchResults(items).slice(0, SHORT_DRAMA_MAX_CARDS);
+    };
+    if (!pending) onUpdate([], true);
+    await Promise.all(sources.map(async (apiId, index) => {
+        queues[index] = (await fetchShortDramaSource(apiId, tag, page)).sort(byTime);
+        pending--;
+        onUpdate(merged(), pending === 0);
+    }));
 }
 
 function renderShortDramaCards(groups, container) {
@@ -134,9 +152,11 @@ function renderShortDramaCards(groups, container) {
 
 /** 由 renderRecommend 在短剧模式下调用；requestSeq 用于丢弃切换标签前的旧请求结果 */
 async function renderShortDrama(tag, page, container, requestSeq) {
-    const groups = await fetchShortDramaPage(tag, page);
-    if (requestSeq !== doubanRequestSeq) return;
-    renderShortDramaCards(groups, container);
+    await fetchShortDramaPage(tag, page, (groups, finished) => {
+        if (requestSeq !== doubanRequestSeq) return;
+        // 还有站点未返回时，空结果先不显示「暂无短剧」，继续显示加载中
+        if (groups.length || finished) renderShortDramaCards(groups, container);
+    });
 }
 
 function openShortDrama(index) {

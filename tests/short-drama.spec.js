@@ -60,3 +60,35 @@ test('切换到短剧后显示各站短剧分类的内容，可按题材切换�
     await expect(page.locator('#modal .source-switcher button')).toHaveCount(2);
     await expect(page.locator('#episodesGrid [data-action="playVideo"]')).toHaveCount(3);
 });
+
+test('先返回的站点先显示，慢的站点返回后再合并进来；每次只请求少量条目', async ({ page }) => {
+    await prepare(page, { douban: true });
+    await login(page);
+    let releaseSlow;
+    const slow = new Promise(resolve => { releaseSlow = resolve; });
+    const pageSizes = [];
+    await page.route('**/proxy/**', async route => {
+        const url = new URL(decodeURIComponent(route.request().url().split('/proxy/')[1]));
+        const json = body => route.fulfill({ contentType: 'application/json', body: JSON.stringify(body) });
+        if (url.hostname === 'movie.douban.com') return json({ subjects: [] });
+        const ac = url.searchParams.get('ac');
+        if (ac === 'list' && CLASSES[url.hostname]) return json({ class: CLASSES[url.hostname], list: [] });
+        if (ac === 'videolist' && url.searchParams.has('t')) {
+            pageSizes.push(url.searchParams.get('pagesize'));
+            if (url.hostname === 'bfzyapi.com') await slow;
+            return json({ list: LISTS[`${url.hostname}:${url.searchParams.get('t')}`] || [], pagecount: 1 });
+        }
+        return route.fulfill({ status: 502, body: 'down' });
+    });
+    await page.goto('/');
+    await page.click('#douban-short-toggle');
+
+    const cards = page.locator('#douban-results .short-drama-card');
+    // 暴风还没返回时，如意的两部剧已经显示
+    await expect(cards).toHaveCount(2);
+    await expect(cards.filter({ hasText: '总裁归来' })).toContainText('如意资源');
+    releaseSlow();
+    await expect(cards.filter({ hasText: '总裁归来' })).toContainText('2 个源');
+    await expect(cards).toHaveCount(2);
+    expect(new Set(pageSizes)).toEqual(new Set(['8']));
+});

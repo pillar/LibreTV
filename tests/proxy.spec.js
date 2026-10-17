@@ -2,6 +2,7 @@
 import { test, expect } from '@playwright/test';
 import http from 'node:http';
 import { proxyFetch } from '../lib/proxy.mjs';
+import { handleRequest } from '../lib/handler.mjs';
 
 let server;
 let origin;
@@ -53,4 +54,11 @@ test('源站出错时不允许缓存，便于重试', async () => {
     failing.close();
     expect(response.status).toBe(503);
     expect(response.headers.get('Cache-Control')).toBe('no-store');
+});
+
+test('资源站接口结果（HTML 类型的 JSON，转为纯文本）只允许浏览器缓存 5 分钟', async () => {
+    const request = new Request('http://site.test/proxy/' + encodeURIComponent(`${origin}/page`));
+    const response = await handleRequest(request, {}, { serveAsset: () => new Response(null, { status: 404 }), proxyOptions: { checkTarget: onlyPublicPaths } });
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Cache-Control')).toBe('private, max-age=300');
 });

@@ -6,3 +6,4 @@
 - [2026-10-16] [测试/命令] 用 `npm test 2>&1 | grep ... | head` 判断测试结果再 `&& git commit`，退出码来自 `head`，测试失败时仍然提交并推送了 → 需要据测试结果决定后续操作时，使用 `set -o pipefail` 或检查 `npm test` 本身的退出码。
 - [2026-10-16] [测试/wrangler dev] `wrangler dev` 默认把 Durable Object 状态保存在 `.wrangler/state`，上一次运行的限流计数会让下一次测试登录失败 → `playwright.config.js` 为每次运行指定新的 `--persist-to` 目录，Worker 测试放宽登录限流，限流本身由 `tests/rate-limit.spec.js` 验证。
 - [2026-10-16] [测试/构建产物] 测试服务器提供的是 `dist/`，修改前端后直接运行 `npx playwright test` 测到的是旧代码 → 修改源文件后运行 `npm test`（会先 `npm run build`），或先手动 `npm run build`。
+- [2026-10-17] [服务端/代理缓存] 「搜索结果缓存 5 分钟」只缓存 `application/json`，线上只用豆瓣接口（标准 JSON）验证过命中；资源站接口多把 JSON 标为 `text/html`，经代理变为 `text/plain`，实际从未缓存，且浏览器按代理默认缓存一天 → `lib/handler.mjs` 的 cacheSecondsOf 同样缓存 `text/plain`；缓存类改动要用真实的资源站接口在线上看 `X-Proxy-Cache`，不能只用一个接口代表全部（`tests/proxy.spec.js` 覆盖浏览器缓存时长）。

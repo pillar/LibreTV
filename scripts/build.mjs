@@ -22,7 +22,7 @@ const outDir = join(root, 'dist');
 const assetsDir = join(outDir, 'assets');
 
 const PAGES = ['index.html', 'player.html', 'watch.html', 'about.html', 'privacy.html'];
-const STATIC_FILES = ['manifest.json', 'robots.txt', 'service-worker.js', 'VERSION.txt', 'image'];
+const STATIC_FILES = ['manifest.json', 'robots.txt', 'VERSION.txt', 'image'];
 // 压缩时不使用比 ES2020 更新的语法（现有代码本身也只用到 ES2020），保证 iOS 14 / Chrome 80 等可用
 const TARGET = 'es2020';
 

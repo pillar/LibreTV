@@ -39,7 +39,10 @@ test('页面带有 CSP，首页的搜索、详情、历史、豆瓣推荐都能�
     await page.click('.tv-nav [data-action="toggleHistory"]');
     await expect(page.locator('#historyPanel')).toHaveClass(/show/);
     // 播放过的视频出现在历史中，删除后面板保持打开
-    await page.evaluate(() => addToViewingHistory({ title: '历史剧', url: 'player.html?url=x', episodeIndex: 0, sourceName: 'bfzy', vod_id: 'a1', episodes: ['x'] }));
+    await page.evaluate(() => localStorage.setItem('viewingHistory', JSON.stringify([{
+        title: '历史剧', url: 'player.html?url=x', episodeIndex: 0, sourceName: 'bfzy', vod_id: 'a1',
+        showIdentifier: 'bfzy_a1', episodes: ['x'], timestamp: Date.now()
+    }])));
     await page.click('.tv-nav [data-action="toggleHistory"]');
     await page.click('.tv-nav [data-action="toggleHistory"]');
     await expect(page.locator('#historyPanel')).toHaveClass(/show/);

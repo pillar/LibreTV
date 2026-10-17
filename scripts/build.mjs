@@ -26,7 +26,7 @@ const STATIC_FILES = ['manifest.json', 'robots.txt', 'VERSION.txt', 'image'];
 // 压缩时不使用比 ES2020 更新的语法（现有代码本身也只用到 ES2020），保证 iOS 14 / Chrome 80 等可用
 const TARGET = 'es2020';
 
-const SCRIPT_TAG = /^[ \t]*<script src="((?:js|libs)\/[^"]+)"[^>]*><\/script>[ \t]*\r?\n?/gm;
+const SCRIPT_TAG = /^[ \t]*<script src="((?:js|libs|lib)\/[^"]+)"[^>]*><\/script>[ \t]*\r?\n?/gm;
 const STYLE_TAG = /^[ \t]*<link rel="stylesheet" href="(css\/[^"]+)">[ \t]*\r?\n?/gm;
 
 rmSync(outDir, { recursive: true, force: true });
@@ -41,8 +41,11 @@ execFileSync(join(root, 'node_modules/.bin/tailwindcss'), [
     '-i', join(root, 'css/tailwind.src.css'), '-o', tailwindCss, '--minify'
 ], { cwd: root, stdio: ['ignore', 'ignore', 'inherit'] });
 
+// 与服务端共用的 lib/*.mjs 去掉 export 后作为普通脚本合并（只用到顶层的 export function / const）
 function readSource(file) {
-    return file === 'css/tailwind.css' ? readFileSync(tailwindCss, 'utf8') : readFileSync(join(root, file), 'utf8');
+    if (file === 'css/tailwind.css') return readFileSync(tailwindCss, 'utf8');
+    const source = readFileSync(join(root, file), 'utf8');
+    return file.endsWith('.mjs') ? source.replace(/^export /gm, '') : source;
 }
 
 // 相同内容（例如多个页面共用的样式组合）只输出一次

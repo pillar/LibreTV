@@ -80,6 +80,7 @@
         if (!src.startsWith(PROXY_URL)) return;
         img.dataset.nativeFallback = '1';
         const target = decodeURIComponent(src.slice(PROXY_URL.length));
+        if (!isAllowedTarget(target)) return;
         const headers = /\.doubanio\.com\//.test(target) ? { Referer: 'https://movie.douban.com/' } : {};
         // 偶发失败时间隔重试，共 3 次
         const delays = [0, 1000, 3000];
@@ -165,8 +166,14 @@
             return Promise.reject(signal.reason || new DOMException('Aborted', 'AbortError'));
         }
 
+        // 与服务端代理相同，只允许公网地址（lib/target-guard.mjs），防止导入的自定义源访问手机所在的局域网
+        const target = decodeURIComponent(input.slice(PROXY_URL.length));
+        if (!isAllowedTarget(target)) {
+            return Promise.resolve(new Response('不允许访问的地址', { status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }));
+        }
+
         const request = nativeHttp.request({
-            url: decodeURIComponent(input.slice(PROXY_URL.length)),
+            url: target,
             method: options.method || 'GET',
             headers: Object.fromEntries(new Headers(options.headers || {})),
             responseType: 'text',

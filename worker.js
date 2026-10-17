@@ -60,7 +60,8 @@ function batchedLimiter(env, name, waitUntil) {
             const now = Date.now();
             let entry = localCounts.get(key);
             if (!entry) {
-                if (localCounts.size >= MAX_LOCAL_KEYS) localCounts.clear();
+                // Map 按插入顺序迭代，淘汰最早记录的键（不整表清空，以免已超限的键被一起解除）
+                if (localCounts.size >= MAX_LOCAL_KEYS) localCounts.delete(localCounts.keys().next().value);
                 entry = { pending: 0, blockedUntil: 0 };
                 localCounts.set(key, entry);
             }

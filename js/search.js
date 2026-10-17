@@ -1,3 +1,47 @@
+// 数据源可用性：资源站经常失效或按地区屏蔽，在本机记录每个源（按接口地址）最近的搜索结果。
+// 连续 SOURCE_FAIL_LIMIT 次请求失败（超时、出错、返回的不是结果列表）后暂时跳过 SOURCE_SKIP_MS，之后再尝试一次；
+// 搜到 0 条结果不算失败。本站代理自身的拒绝（未登录、限流）也不算数据源失败。
+const SOURCE_HEALTH_KEY = 'sourceHealth';
+const SOURCE_FAIL_LIMIT = 3;
+const SOURCE_SKIP_MS = 6 * 60 * 60 * 1000;
+
+function readSourceHealth() {
+    try {
+        return JSON.parse(localStorage.getItem(SOURCE_HEALTH_KEY) || '{}') || {};
+    } catch {
+        return {};
+    }
+}
+
+function recordSourceResult(apiBaseUrl, ok) {
+    const health = readSourceHealth();
+    if (ok) {
+        delete health[apiBaseUrl];
+    } else {
+        const fails = ((health[apiBaseUrl] && health[apiBaseUrl].fails) || 0) + 1;
+        health[apiBaseUrl] = { fails, skipUntil: fails >= SOURCE_FAIL_LIMIT ? Date.now() + SOURCE_SKIP_MS : 0 };
+    }
+    try {
+        localStorage.setItem(SOURCE_HEALTH_KEY, JSON.stringify(health));
+    } catch {
+        // 存储不可用时只是不记录
+    }
+}
+
+function sourceApiUrl(apiId) {
+    if (apiId.startsWith('custom_')) {
+        const customApi = getCustomApiInfo(apiId.slice('custom_'.length));
+        return customApi ? customApi.url : '';
+    }
+    return API_SITES[apiId] ? API_SITES[apiId].api : '';
+}
+
+/** 该源最近连续失败、目前处于暂停期 */
+function isSourceUnavailable(apiId) {
+    const entry = readSourceHealth()[sourceApiUrl(apiId)];
+    return Boolean(entry && entry.skipUntil > Date.now());
+}
+
 async function searchByAPIAndKeyWord(apiId, query) {
     try {
         let apiUrl, apiName, apiBaseUrl;
@@ -23,20 +67,35 @@ async function searchByAPIAndKeyWord(apiId, query) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
         
-        const response = await fetch(PROXY_URL + encodeURIComponent(apiUrl), {
-            headers: API_CONFIG.search.headers,
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
+        let response;
+        try {
+            response = await fetch(PROXY_URL + encodeURIComponent(apiUrl), {
+                headers: API_CONFIG.search.headers,
+                signal: controller.signal
+            });
+        } catch (error) {
+            // 超时或连接失败
+            recordSourceResult(apiBaseUrl, false);
+            throw error;
+        } finally {
+            clearTimeout(timeoutId);
+        }
         
         if (!response.ok) {
+            if (response.status !== 401 && response.status !== 429) recordSourceResult(apiBaseUrl, false);
             return [];
         }
         
-        const data = await response.json();
-        
-        if (!data || !data.list || !Array.isArray(data.list) || data.list.length === 0) {
+        let data;
+        try {
+            data = await response.json();
+        } catch {
+            data = null;
+        }
+        // 返回的不是结果列表（如数据源关闭了搜索、域名被转到其他网页）
+        const valid = Boolean(data && Array.isArray(data.list));
+        recordSourceResult(apiBaseUrl, valid);
+        if (!valid || data.list.length === 0) {
             return [];
         }
         

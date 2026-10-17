@@ -1578,3 +1578,9 @@ body.page-bg {
 body .search-progress {
     color: var(--blue);
 }
+
+/* 最近连续搜索失败、暂时跳过的数据源（js/search.js） */
+body .source-unavailable {
+    text-decoration: line-through;
+    opacity: 0.6;
+}

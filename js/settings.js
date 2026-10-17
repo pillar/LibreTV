@@ -28,7 +28,7 @@ function initAPICheckboxes() {
                    class="form-checkbox h-3 w-3 text-blue-600 bg-[#222] border border-[#333]" 
                    ${checked ? 'checked' : ''} 
                    data-api="${apiKey}">
-            <label for="api_${apiKey}" class="ml-1 text-xs text-gray-400 truncate">${api.name}</label>
+            <label for="api_${apiKey}" class="ml-1 text-xs text-gray-400 truncate${isSourceUnavailable(apiKey) ? ' source-unavailable" title="最近连续搜索失败，暂时跳过' : ''}">${api.name}</label>
         `;
         normaldiv.appendChild(checkbox);
 

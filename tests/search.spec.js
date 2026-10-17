@@ -107,3 +107,32 @@ test('详情优先使用 m3u8 播放源（第一个播放源只是网页链接�
     await expect(episodes).toHaveCount(2);
     expect(await episodes.first().getAttribute('data-args')).toContain('https://media.example/1.m3u8');
 });
+
+test('数据源连续 3 次搜索失败后暂时跳过，设置中标出；搜到 0 条不算失败', async ({ page }) => {
+    const requests = { bfzy: 0, ruyi: 0 };
+    await page.route('**/proxy/**', route => {
+        const url = new URL(decodeURIComponent(route.request().url().split('/proxy/')[1]));
+        if (url.hostname.includes('bfzy')) {
+            requests.bfzy++;
+            // 失效的源：域名被转到其他网页
+            return route.fulfill({ contentType: 'text/html', body: '<html>parked</html>' });
+        }
+        requests.ruyi++;
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ list: [], pagecount: 1 }) });
+    });
+    await page.goto('/');
+    for (const [i, keyword] of ['甲', '乙', '丙', '丁'].entries()) {
+        await page.fill('#searchInput', keyword);
+        await page.click('button.search-go');
+        await expect.poll(() => requests.ruyi).toBe(i + 1);
+        await expect(page.locator('#searchProgress')).not.toContainText('正在搜索');
+    }
+    expect(requests).toEqual({ bfzy: 3, ruyi: 4 });
+    await expect(page.locator('#searchProgress')).toHaveText('已跳过 1 个暂不可用的源 · ');
+
+    await page.reload();
+    await page.locator('[aria-label="打开设置"]').click();
+    await expect(page.locator('label[for="api_bfzy"]')).toHaveClass(/source-unavailable/);
+    await expect(page.locator('label[for="api_bfzy"]')).toHaveAttribute('title', '最近连续搜索失败，暂时跳过');
+    await expect(page.locator('label[for="api_ruyi"]')).not.toHaveClass(/source-unavailable/);
+});

@@ -186,7 +186,7 @@ function updateSearchUrl(query) {
     }
 }
 
-function renderSearchProgress(done, total) {
+function renderSearchProgress(done, total, skipped = 0) {
     const count = document.getElementById('searchResultsCount');
     if (!count) return;
     let progress = document.getElementById('searchProgress');
@@ -196,7 +196,10 @@ function renderSearchProgress(done, total) {
         progress.className = 'search-progress';
         count.parentElement.prepend(progress);
     }
-    progress.textContent = done < total ? `正在搜索 ${done}/${total} 个源 · ` : '';
+    const parts = [];
+    if (done < total) parts.push(`正在搜索 ${done}/${total} 个源`);
+    if (skipped) parts.push(`已跳过 ${skipped} 个暂不可用的源`);
+    progress.textContent = parts.length ? parts.join(' · ') + ' · ' : '';
 }
 
 function renderNoResults(resultsDiv) {
@@ -292,7 +295,11 @@ async function search() {
     const seq = ++searchSeq;
     const filterAdult = localStorage.getItem('yellowFilterEnabled') === 'true';
     const resultsDiv = document.getElementById('results');
-    const total = selectedAPIs.length;
+    // 最近连续失败的源暂时跳过（见 js/search.js）；全部都失败过时仍然全部尝试
+    const available = selectedAPIs.filter(apiId => !isSourceUnavailable(apiId));
+    const apiIds = available.length ? available : selectedAPIs;
+    const skipped = selectedAPIs.length - apiIds.length;
+    const total = apiIds.length;
     let allResults = [];
     let done = 0;
     let shown = false;
@@ -300,7 +307,7 @@ async function search() {
     saveSearchHistory(query);
     showLoading();
 
-    await Promise.all(selectedAPIs.map(async apiId => {
+    await Promise.all(apiIds.map(async apiId => {
         let results = await searchByAPIAndKeyWord(apiId, query);
         if (seq !== searchSeq) return;
         done++;
@@ -317,7 +324,7 @@ async function search() {
             }
             renderSearchResults(allResults);
         }
-        if (shown) renderSearchProgress(done, total);
+        if (shown) renderSearchProgress(done, total, skipped);
     }));
 
     if (seq !== searchSeq) return;
@@ -325,7 +332,7 @@ async function search() {
         hideLoading();
         showResultsArea();
         document.getElementById('searchResultsCount').textContent = '0';
-        renderSearchProgress(done, total);
+        renderSearchProgress(done, total, skipped);
         renderNoResults(resultsDiv);
     }
 }

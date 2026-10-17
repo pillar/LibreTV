@@ -60,16 +60,16 @@ npm run dev            # 构建 dist/ 并启动 Node 版服务，修改服务端
 
 访问 `http://localhost:8080`（端口可通过 `.env` 中的 `PORT` 修改）。修改前端文件后重新运行 `npm run build`。也可以用 `npx wrangler dev` 在本地运行 Worker 版。
 
-网站文件构建到 `dist/`（`scripts/build.mjs`）：Worker、Docker 和 App 都只发布这个目录。每个页面的脚本和样式各合并压缩成一个带内容哈希的文件（`dist/assets/`），浏览器可长期缓存；Tailwind 样式在构建时生成。页面不允许内联脚本和内联事件（CSP），交互请用 `data-action`（见 `js/actions.js`）。
+网站文件构建到 `dist/`（`scripts/build.mjs`）：Worker、Docker 和 App 都只发布这个目录。每个页面的脚本和样式各合并压缩成一个带内容哈希的文件（`dist/assets/`），浏览器可长期缓存；Tailwind 样式在构建时生成。页面不允许内联脚本和内联事件（CSP），交互请用 `data-action`（见 `js/actions.js`）。前端脚本是普通脚本，文件之间通过全局函数互相调用，`npm run lint`（ESLint）会检查调用了不存在的函数和未使用的变量。颜色用 `tailwind.config.js` 中与 `css/theme.css` 变量对应的语义色（`bg-surface`、`bg-fill`、`text-ink-2` 等），不要再写深色的 `bg-[#111]` 之类。
 
-端到端测试（先构建，再同时启动 Node 版与本地 Worker，数据源接口使用模拟数据）：
+代码检查与端到端测试（先运行 ESLint 并构建，再同时启动 Node 版与本地 Worker，数据源接口使用模拟数据）：
 
 ```bash
 npx playwright install chromium   # 首次运行前安装浏览器（本地默认使用已安装的 Chrome）
 npm test
 ```
 
-推送到 GitHub 后，`.github/workflows/test.yml` 会自动运行语法检查与全部测试。
+推送到 GitHub 后，`.github/workflows/test.yml` 会自动运行代码检查与全部测试。
 
 ## 📱 iOS / Android 客户端
 

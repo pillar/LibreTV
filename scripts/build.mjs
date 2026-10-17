@@ -1,6 +1,6 @@
 // 构建网站到 dist/：Cloudflare Worker（wrangler.jsonc 的 assets）、Node server.mjs 和 App（mobile/scripts/copy-web.mjs）都只发布这个目录。
 //
-// - 每个页面引用的脚本按原顺序合并成一个文件、样式合并成一个文件，压缩后以内容哈希命名放在 dist/assets/，
+// - 每个页面引用的脚本按原顺序合并成一个文件（首页与播放页共用的开头部分另成 common 文件）、样式合并成一个文件，压缩后以内容哈希命名放在 dist/assets/，
 //   页面改为引用合并后的文件。内容不变时文件名不变，因此可以让浏览器长期缓存（见 dist/_headers 与 server.mjs）。
 // - 脚本仍是普通（非模块）脚本：合并后顶层函数和变量依旧是全局的，页面中的 data-action 调用不受影响。
 // - Tailwind 只生成页面与脚本中用到的类名。
@@ -60,6 +60,15 @@ async function writeBundle(name, files, loader) {
     return fileName;
 }
 
+// 首页与播放页开头相同的一段脚本单独打包（两个页面的脚本顺序因此保持一致），从首页进入播放页时这部分已在浏览器缓存中
+const SHARED_SCRIPT_PAGES = ['index.html', 'player.html'];
+const scriptsOf = page => [...readFileSync(join(root, page), 'utf8').matchAll(SCRIPT_TAG)].map(m => m[1]);
+const [firstList, ...otherLists] = SHARED_SCRIPT_PAGES.map(scriptsOf);
+let sharedCount = 0;
+while (sharedCount < firstList.length && otherLists.every(list => list[sharedCount] === firstList[sharedCount])) sharedCount++;
+const sharedScripts = firstList.slice(0, sharedCount);
+const sharedBundle = sharedScripts.length ? await writeBundle('common', sharedScripts, 'js') : '';
+
 for (const page of PAGES) {
     let html = readFileSync(join(root, page), 'utf8');
     const name = page.replace(/\.html$/, '');
@@ -77,10 +86,18 @@ for (const page of PAGES) {
 
     const scripts = [...html.matchAll(SCRIPT_TAG)].map(m => m[1]);
     if (scripts.length) {
-        const bundle = await writeBundle(name, scripts, 'js');
-        // 合并后的脚本放在原来最后一个脚本的位置（各页面的脚本都位于 body 末尾或 head 中同一处）
-        let remaining = scripts.length;
-        html = html.replace(SCRIPT_TAG, () => (--remaining === 0 ? `    <script src="${bundle}"></script>\n` : ''));
+        const shared = SHARED_SCRIPT_PAGES.includes(page) ? sharedCount : 0;
+        const own = scripts.slice(shared);
+        const bundle = own.length ? await writeBundle(name, own, 'js') : '';
+        // 公共脚本放在原来第一个公共脚本的位置，其余合并后放在原来最后一个脚本的位置
+        // （各页面的脚本都位于 body 末尾或 head 中同一处）
+        let index = 0;
+        html = html.replace(SCRIPT_TAG, () => {
+            const position = index++;
+            if (shared && position === 0) return `    <script src="${sharedBundle}"></script>\n`;
+            if (bundle && position === scripts.length - 1) return `    <script src="${bundle}"></script>\n`;
+            return '';
+        });
     }
 
     writeFileSync(join(outDir, page), html);

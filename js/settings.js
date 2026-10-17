@@ -5,14 +5,8 @@ function initAPICheckboxes() {
     const container = document.getElementById('apiCheckboxes');
     container.innerHTML = '';
 
-    // 添加普通API组标题
     const normaldiv = document.createElement('div');
-    normaldiv.id = 'normaldiv';
     normaldiv.className = 'grid grid-cols-2 gap-2';
-    const normalTitle = document.createElement('div');
-    normalTitle.className = 'api-group-title';
-    normalTitle.textContent = '普通资源';
-    normaldiv.appendChild(normalTitle);
 
     // 创建普通API源的复选框
     Object.keys(API_SITES).forEach(apiKey => {
@@ -244,15 +238,9 @@ function updateSelectedApiCount() {
 }
 
 // 全选或取消全选API
-function selectAllAPIs(selectAll = true, excludeAdult = false) {
-    const checkboxes = document.querySelectorAll('#apiCheckboxes input[type="checkbox"]');
-
-    checkboxes.forEach(checkbox => {
-        if (excludeAdult && checkbox.classList.contains('api-adult')) {
-            checkbox.checked = false;
-        } else {
-            checkbox.checked = selectAll;
-        }
+function selectAllAPIs(selectAll = true) {
+    document.querySelectorAll('#apiCheckboxes input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = selectAll;
     });
 
     updateSelectedAPIs();

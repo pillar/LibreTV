@@ -438,11 +438,6 @@ body .form-checkbox:checked {
     border-color: var(--blue);
 }
 
-body .api-group-title {
-    color: var(--ink-3);
-    border-top-color: var(--separator);
-}
-
 body input[type="text"],
 body input[type="password"] {
     caret-color: var(--blue);

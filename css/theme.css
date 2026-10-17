@@ -97,17 +97,9 @@ body.player-page {
 
 /* ---------- 文字颜色：原页面按深色界面写死的白/灰文字改为浅色界面的系统文字色 ---------- */
 body.text-white,
-body .text-white,
-body .text-gray-200,
-body .hover\:text-white:hover {
+body .text-white {
     color: var(--ink);
 }
-
-body .text-gray-300 { color: rgba(60, 60, 67, 0.85); }
-body .text-gray-400 { color: var(--ink-2); }
-body .text-gray-500 { color: var(--ink-3); }
-body .text-red-400,
-body .text-red-500 { color: var(--red); }
 
 /* 深色或彩色底上的文字保持白色 */
 body .bg-black\/70,
@@ -303,54 +295,6 @@ body .gradient-text {
     color: var(--ink);
 }
 
-/* 原有深色背景工具类映射为浅色 */
-body .bg-\[\#111\],
-body .bg-\[\#151515\],
-body .bg-\[\#0a0a0a\] {
-    background-color: var(--surface);
-}
-
-body .bg-\[\#191919\],
-body .bg-\[\#1a1a1a\],
-body .bg-gray-800 {
-    background-color: var(--surface-2);
-}
-
-body .bg-\[\#222\],
-body .bg-\[\#333\],
-body .bg-gray-700,
-body .bg-\[\#444\],
-body .bg-\[\#555\],
-body .bg-gray-600 {
-    background-color: var(--fill);
-}
-
-body .hover\:bg-\[\#222\]:hover,
-body .hover\:bg-\[\#333\]:hover,
-body .hover\:bg-\[\#444\]:hover,
-body .hover\:bg-\[\#555\]:hover,
-body .hover\:bg-gray-600:hover,
-body .hover\:bg-gray-800:hover {
-    background-color: var(--fill-hover);
-}
-
-body .border-\[\#222\],
-body .border-\[\#333\],
-body .border-\[\#444\],
-body .border-gray-700,
-body .border-gray-800,
-body .border-white {
-    border-color: var(--separator);
-}
-
-body .hover\:border-white:hover {
-    border-color: var(--separator);
-}
-
-body .rounded-lg {
-    border-radius: var(--radius-md);
-}
-
 /* 强调按钮：系统蓝 */
 body .bg-pink-600,
 body .bg-blue-600,
@@ -419,10 +363,6 @@ body #customApisList button {
     border-radius: 999px;
     padding-left: 0.7rem;
     padding-right: 0.7rem;
-}
-
-body .settings-panel .bg-\[\#333\].text-white {
-    color: var(--blue);
 }
 
 body .close-btn {
@@ -665,19 +605,19 @@ body .douban-card .bg-gradient-to-t {
     opacity: 0.3;
 }
 
-body .douban-card .bg-\[\#111\] {
+body .douban-card .bg-surface {
     background: transparent;
     padding: 0.55rem 0.15rem 0;
     text-align: left;
 }
 
-body .douban-card .bg-\[\#111\] button {
+body .douban-card .bg-surface button {
     color: var(--ink);
     font-weight: 500;
     text-align: left;
 }
 
-body .douban-card:hover .bg-\[\#111\] button {
+body .douban-card:hover .bg-surface button {
     color: var(--blue);
 }
 
@@ -845,7 +785,7 @@ body #doubanArea h2 {
 }
 
 /* 分段控件：iOS 浅色分段控件 */
-body #doubanArea .bg-\[\#222\].rounded-full {
+body #doubanArea .bg-fill.rounded-full {
     background: rgba(118, 118, 128, 0.12);
     padding: 2px;
 }
@@ -962,21 +902,6 @@ body #modalContent button:hover {
 body #modalContent button.bg-blue-600 {
     background: var(--blue);
     color: #fff;
-}
-
-/* 播放页剧集按钮由 player.js 生成，带 Tailwind 的 !important 类（!bg-[#222] 等），这里同样用 !important 覆盖 */
-body .\!bg-\[\#222\] {
-    background-color: var(--fill) !important;
-    color: var(--ink);
-}
-
-body .hover\:\!bg-\[\#333\]:hover {
-    background-color: var(--fill-hover) !important;
-}
-
-body .\!border-\[\#333\],
-body .\!border-blue-500 {
-    border-color: transparent !important;
 }
 
 body .episode-active,

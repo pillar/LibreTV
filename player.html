@@ -146,7 +146,7 @@
     <meta http-equiv="Expires" content="0">
 </head>
 <body class="player-page">
-    <header class="player-header-fixed p-4 flex items-center border-b border-[#333] gap-2">
+    <header class="player-header-fixed p-4 flex items-center border-b border-separator gap-2">
         <div class="flex items-center min-w-0">
             <button id="homeButton" type="button" class="flex items-center min-w-0 cursor-pointer" style="background:none;border:none;padding:0;">
                 <img src="image/logo.png" alt="" class="w-8 h-8 mr-2 rounded-lg logo-icon">
@@ -154,7 +154,7 @@
             </button>
         </div>
         <h2 id="videoTitle" class="text-xl font-semibold flex-1 text-center overflow-x-auto whitespace-nowrap truncate custom-title-scroll"></h2>
-        <a href="#" id="goBack" data-action="goBack" data-pass-event class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors flex items-center min-w-0 home-btn">
+        <a href="#" id="goBack" data-action="goBack" data-pass-event class="px-4 py-2 bg-fill hover:bg-fill-hover border border-separator rounded-lg transition-colors flex items-center min-w-0 home-btn">
             <svg class="w-5 h-5 mr-1" viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
                 <path d="M5.25 11h15a1.5 1.5 0 1 1 0 3H5.25a1.5 1.5 0 0 1 0-3z"/>
                 <path d="M5.55 12 11.3 17.3a1.5 1.5 0 1 1-2.12 2.12L3 12l6.18-6.18a1.5 1.5 0 1 1 2.12 2.12L5.55 12z"/>
@@ -165,18 +165,18 @@
 
     <!-- 密码验证弹窗 -->
     <div id="passwordModal" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[65] transition-opacity duration-300">
-        <div class="bg-[#111] p-8 rounded-lg w-11/12 max-w-md border border-[#333] max-h-[90vh] flex flex-col">
+        <div class="bg-surface p-8 rounded-lg w-11/12 max-w-md border border-separator max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center mb-6 flex-none">
                 <h2 class="text-2xl font-bold gradient-text">访问验证</h2>
             </div>
             <div class="mb-6">
-                <p class="text-gray-300 mb-4">请输入密码继续访问</p>
+                <p class="text-ink-soft mb-4">请输入密码继续访问</p>
                 <form id="passwordForm">
                     <input type="text" name="username" id="username" autocomplete="username" style="display:none" tabindex="-1" aria-hidden="true">
-                    <input type="password" id="passwordInput" class="w-full bg-[#111] border border-[#333] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-white transition-colors" placeholder="密码..." autocomplete="new-password">
+                    <input type="password" id="passwordInput" class="w-full bg-surface border border-separator text-white px-4 py-3 rounded-lg focus:outline-none focus:border-white transition-colors" placeholder="密码..." autocomplete="new-password">
                     <button id="passwordSubmitBtn" type="submit" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">提交</button>
                 </form>
-                <p id="passwordError" class="text-red-500 mt-2 hidden">密码错误，请重试</p>
+                <p id="passwordError" class="text-danger mt-2 hidden">密码错误，请重试</p>
             </div>
         </div>
     </div>
@@ -205,21 +205,21 @@
         </div>
 
         <!-- 源信息 -->
-        <div class="player-container flex justify-between py-2 px-4 mb-2 bg-gray-700" id="resourceInfoBarContainer">
+        <div class="player-container flex justify-between py-2 px-4 mb-2 bg-fill" id="resourceInfoBarContainer">
             <!-- 资源信息卡片、切换按钮、视频数将由JS动态渲染 -->
         </div>
 
         <!-- 集数导航 -->
         <div class="player-container">
             <div class="flex justify-between items-center my-4">
-                <button data-action="playPreviousEpisode" id="prevButton" class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors">
+                <button data-action="playPreviousEpisode" id="prevButton" class="px-4 py-2 bg-fill hover:bg-fill-hover border border-separator rounded-lg transition-colors">
                     <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
                     上一集
                 </button>
-                <span class="text-gray-400" id="episodeInfo">加载中...</span>
-                <button data-action="playNextEpisode" id="nextButton" class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors">
+                <span class="text-ink-2" id="episodeInfo">加载中...</span>
+                <button data-action="playNextEpisode" id="nextButton" class="px-4 py-2 bg-fill hover:bg-fill-hover border border-separator rounded-lg transition-colors">
                     下一集
                     <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -233,7 +233,7 @@
             <div class="flex flex-wrap justify-end items-center gap-2">
                 <!-- 自动连播开关 - 分组到左边 -->
                 <div class="flex items-center gap-1 flex-shrink-0 mr-auto">
-                    <span class="text-gray-400 text-sm whitespace-nowrap">自动连播</span>
+                    <span class="text-ink-2 text-sm whitespace-nowrap">自动连播</span>
                     <label class="switch">
                         <input type="checkbox" id="autoplayToggle">
                         <span class="slider"></span>
@@ -243,7 +243,7 @@
                 <!-- 把各种功能按钮放在右侧 - 在小屏幕上各自占一行 -->
                 <div class="flex flex-wrap justify-end gap-2">
                     <!-- 倒序排列按钮 -->
-                    <button data-action="toggleEpisodeOrder" class="px-3 py-1 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors flex items-center space-x-1 flex-shrink-0">
+                    <button data-action="toggleEpisodeOrder" class="px-3 py-1 bg-fill hover:bg-fill-hover border border-separator rounded-lg transition-colors flex items-center space-x-1 flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" id="orderIcon" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd" />
                         </svg>
@@ -251,7 +251,7 @@
                     </button>
                     
                     <!-- 复制链接按钮 -->
-                    <button title="复制播放链接" data-action="copyLinks" class="px-2 py-1 bg-[#222] hover:bg-[#333] border border-[#333] text-white rounded-lg transition">
+                    <button title="复制播放链接" data-action="copyLinks" class="px-2 py-1 bg-fill hover:bg-fill-hover border border-separator text-white rounded-lg transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 012-2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                         </svg>
@@ -259,7 +259,7 @@
                     
                     <!-- 锁定控制按钮 - 始终显示在最右侧 -->
                     <button id="lockToggle" data-action="toggleControlsLock" title="锁定控制" 
-                            class="px-2 py-1 bg-[#222] hover:bg-[#333] border border-[#333] text-white rounded-lg transition flex-shrink-0">
+                            class="px-2 py-1 bg-fill hover:bg-fill-hover border border-separator text-white rounded-lg transition flex-shrink-0">
                         <svg id="lockIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <!-- 默认状态：未锁图标 -->
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -275,7 +275,7 @@
             <div class="episode-grid" id="episodesGrid">
                 <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2" id="episodesList">
                     <!-- 集数将在这里动态加载 -->
-                    <div class="col-span-full text-center text-gray-400 py-8">加载中...</div>
+                    <div class="col-span-full text-center text-ink-2 py-8">加载中...</div>
                 </div>
             </div>
         </div>
@@ -290,7 +290,7 @@
     </div>
 
     <!-- 页脚区域 -->
-    <footer class="footer mt-2 py-6 border-t border-[#333] bg-[#0a0a0a]">
+    <footer class="footer mt-2 py-6 border-t border-separator bg-surface">
         <div class="container mx-auto px-4">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="mb-4 md:mb-0">
@@ -298,17 +298,17 @@
                         <img src="image/logo.png" alt="" class="w-6 h-6 mr-2 rounded-md">
                         <span class="font-semibold">PlayAny TV</span>
                     </div>
-                    <p class="text-gray-500 text-sm mt-2 text-center md:text-left">© 2025 PlayAny TV · 想看就看，随处可播</p>
+                    <p class="text-ink-3 text-sm mt-2 text-center md:text-left">© 2025 PlayAny TV · 想看就看，随处可播</p>
                 </div>
                 
                 <div class="text-center md:text-right">
-                    <p class="text-gray-500 text-sm max-w-md">
+                    <p class="text-ink-3 text-sm max-w-md">
                         免责声明：本站仅为视频搜索工具，不存储、上传或分发任何视频内容。
                         所有视频均来自第三方API接口。如有侵权，请联系相关内容提供方。
                     </p>
                     <div class="mt-2 flex justify-center md:justify-end space-x-4">
-                        <a href="about.html" class="text-gray-400 hover:text-white text-sm transition-colors">关于我们</a>
-                        <a href="privacy.html" class="text-gray-400 hover:text-white text-sm transition-colors">隐私政策</a>
+                        <a href="about.html" class="text-ink-2 hover:text-ink text-sm transition-colors">关于我们</a>
+                        <a href="privacy.html" class="text-ink-2 hover:text-ink text-sm transition-colors">隐私政策</a>
                     </div>
                 </div>
             </div>
@@ -317,10 +317,10 @@
 
     <!-- 换源模态框 -->
     <div id="modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center transition-opacity duration-300 z-[10000]">
-        <div class="bg-[#111] p-8 rounded-lg w-11/12 max-w-4xl border border-[#333] max-h-[90vh] flex flex-col">
+        <div class="bg-surface p-8 rounded-lg w-11/12 max-w-4xl border border-separator max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center mb-6 flex-none">
                 <h2 id="modalTitle" class="text-2xl font-bold gradient-text break-words pr-4 max-w-[80%]"></h2>
-                <button data-action="closeModal" class="text-gray-400 hover:text-white text-2xl transition-colors flex-shrink-0">&times;</button>
+                <button data-action="closeModal" class="text-ink-2 hover:text-ink text-2xl transition-colors flex-shrink-0">&times;</button>
             </div>
             <div id="modalContent" class="overflow-auto flex-1 min-h-0">
                 <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
@@ -331,8 +331,8 @@
 
     <!-- 添加 loading 提示框 -->
     <div id="loading" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[10001]">
-        <div class="bg-[#111] p-8 rounded-lg border border-[#333] flex items-center space-x-4">
-            <div class="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+        <div class="bg-surface p-8 rounded-lg border border-separator flex items-center space-x-4">
+            <div class="w-8 h-8 border-4 border-separator border-t-transparent rounded-full animate-spin"></div>
             <p class="text-white text-lg">加载中...</p>
         </div>
     </div>

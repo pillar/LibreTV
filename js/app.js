@@ -195,12 +195,12 @@ function renderSearchProgress(done, total, skipped = 0) {
 function renderNoResults(resultsDiv) {
     resultsDiv.innerHTML = `
         <div class="col-span-full text-center py-16">
-            <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="mx-auto h-12 w-12 text-ink-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h3 class="mt-2 text-lg font-medium text-gray-400">没有找到匹配的结果</h3>
-            <p class="mt-1 text-sm text-gray-500">请尝试其他关键词或更换数据源</p>
+            <h3 class="mt-2 text-lg font-medium text-ink-2">没有找到匹配的结果</h3>
+            <p class="mt-1 text-sm text-ink-3">请尝试其他关键词或更换数据源</p>
         </div>
     `;
 }
@@ -209,13 +209,13 @@ function renderResultCard(item, resultIndex) {
     const vodName = (item.vod_name || '').toString();
     const safeName = escapeHtml(vodName);
     const sourceInfo = item._sources.length > 1
-        ? `<span class="bg-[#222] text-xs px-1.5 py-0.5 rounded-full">${item._sources.length} 个源</span>`
-        : item.source_name ? `<span class="bg-[#222] text-xs px-1.5 py-0.5 rounded-full">${escapeHtml(item.source_name)}</span>` : '';
+        ? `<span class="bg-fill text-xs px-1.5 py-0.5 rounded-full">${item._sources.length} 个源</span>`
+        : item.source_name ? `<span class="bg-fill text-xs px-1.5 py-0.5 rounded-full">${escapeHtml(item.source_name)}</span>` : '';
     const coverUrl = safeHttpUrl(item.vod_pic);
     const hasCover = Boolean(coverUrl);
 
     return `
-        <div class="card-hover bg-[#111] rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-[1.02] h-full shadow-sm hover:shadow-md"
+        <div class="card-hover bg-surface rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-[1.02] h-full shadow-sm hover:shadow-md"
              ${actionAttrs('openSearchResult', resultIndex)}>
             <div class="flex h-full">
                 ${hasCover ? `
@@ -235,12 +235,12 @@ function renderResultCard(item, resultIndex) {
                             ${item.type_name ? `<span class="text-xs py-0.5 px-1.5 rounded bg-opacity-20 bg-blue-500 text-blue-300">${escapeHtml(item.type_name)}</span>` : ''}
                             ${item.vod_year ? `<span class="text-xs py-0.5 px-1.5 rounded bg-opacity-20 bg-purple-500 text-purple-300">${escapeHtml(item.vod_year)}</span>` : ''}
                         </div>
-                        <p class="text-gray-400 line-clamp-2 overflow-hidden ${hasCover ? '' : 'text-center'} mb-2">
+                        <p class="text-ink-2 line-clamp-2 overflow-hidden ${hasCover ? '' : 'text-center'} mb-2">
                             ${escapeHtml(item.vod_remarks || '暂无介绍')}
                         </p>
                     </div>
 
-                    <div class="flex justify-between items-center mt-1 pt-1 border-t border-gray-800">
+                    <div class="flex justify-between items-center mt-1 pt-1 border-t border-separator">
                         ${sourceInfo ? `<div>${sourceInfo}</div>` : '<div></div>'}
                     </div>
                 </div>
@@ -443,7 +443,7 @@ async function showDetails(id, vod_name, sourceCode) {
 
         // 显示来源信息
         const sourceName = data.videoInfo && data.videoInfo.source_name ?
-            ` <span class="text-sm font-normal text-gray-400">(${escapeHtml(data.videoInfo.source_name)})</span>` : '';
+            ` <span class="text-sm font-normal text-ink-2">(${escapeHtml(data.videoInfo.source_name)})</span>` : '';
 
         // 不对标题进行截断处理，允许完整显示
         modalTitle.innerHTML = `<span class="break-words">${escapeHtml(vod_name || '未知视频')}</span>${sourceName}`;
@@ -492,13 +492,13 @@ async function showDetails(id, vod_name, sourceCode) {
                 <div class="flex flex-wrap items-center justify-between mb-4 gap-2">
                     <div class="flex items-center gap-2">
                         <button id="episodeOrderToggle" ${actionAttrs('toggleEpisodeOrder', sourceCode, id)} 
-                                class="px-3 py-1.5 bg-[#333] hover:bg-[#444] border border-[#444] rounded text-sm transition-colors flex items-center gap-1">
+                                class="px-3 py-1.5 bg-fill hover:bg-fill-hover border border-separator rounded text-sm transition-colors flex items-center gap-1">
                             <svg class="w-4 h-4 transform ${episodesReversed ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                             </svg>
                             <span>${episodesReversed ? '正序排列' : '倒序排列'}</span>
                         </button>
-                        <span class="text-gray-400 text-sm">共 ${data.episodes.length} 集</span>
+                        <span class="text-ink-2 text-sm">共 ${data.episodes.length} 集</span>
                     </div>
                     <button data-action="copyLinks" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors">
                         复制链接
@@ -515,8 +515,8 @@ async function showDetails(id, vod_name, sourceCode) {
         } else {
             modalContent.innerHTML = `
                 <div class="text-center py-8">
-                    <div class="text-red-400 mb-2">❌ 未找到播放资源</div>
-                    <div class="text-gray-500 text-sm">该视频可能暂时无法播放，请尝试其他视频</div>
+                    <div class="text-danger mb-2">❌ 未找到播放资源</div>
+                    <div class="text-ink-3 text-sm">该视频可能暂时无法播放，请尝试其他视频</div>
                 </div>
             `;
         }
@@ -553,7 +553,7 @@ function renderEpisodes(vodName, sourceCode, vodId) {
         const realIndex = episodesReversed ? currentEpisodes.length - 1 - index : index;
         return `
             <button id="episode-${realIndex}" ${actionAttrs('playVideo', episode, vodName, sourceCode, realIndex, vodId)} 
-                    class="px-4 py-2 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition-colors text-center episode-btn">
+                    class="px-4 py-2 bg-fill hover:bg-fill-hover border border-separator rounded-lg transition-colors text-center episode-btn">
                 ${realIndex + 1}
             </button>
         `;

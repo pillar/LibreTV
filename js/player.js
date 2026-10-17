@@ -560,30 +560,13 @@ function updateEpisodeInfo() {
 
 // 更新按钮状态
 function updateButtonStates() {
-    const prevButton = document.getElementById('prevButton');
-    const nextButton = document.getElementById('nextButton');
-
-    // 处理上一集按钮
-    if (currentEpisodeIndex > 0) {
-        prevButton.classList.remove('bg-gray-700', 'cursor-not-allowed');
-        prevButton.classList.add('bg-[#222]', 'hover:bg-[#333]');
-        prevButton.removeAttribute('disabled');
-    } else {
-        prevButton.classList.add('bg-gray-700', 'cursor-not-allowed');
-        prevButton.classList.remove('bg-[#222]', 'hover:bg-[#333]');
-        prevButton.setAttribute('disabled', '');
-    }
-
-    // 处理下一集按钮
-    if (currentEpisodeIndex < currentEpisodes.length - 1) {
-        nextButton.classList.remove('bg-gray-700', 'cursor-not-allowed');
-        nextButton.classList.add('bg-[#222]', 'hover:bg-[#333]');
-        nextButton.removeAttribute('disabled');
-    } else {
-        nextButton.classList.add('bg-gray-700', 'cursor-not-allowed');
-        nextButton.classList.remove('bg-[#222]', 'hover:bg-[#333]');
-        nextButton.setAttribute('disabled', '');
-    }
+    const setEnabled = (button, enabled) => {
+        button.disabled = !enabled;
+        button.classList.toggle('cursor-not-allowed', !enabled);
+        button.classList.toggle('hover:bg-fill-hover', enabled);
+    };
+    setEnabled(document.getElementById('prevButton'), currentEpisodeIndex > 0);
+    setEnabled(document.getElementById('nextButton'), currentEpisodeIndex < currentEpisodes.length - 1);
 }
 
 // 渲染集数按钮
@@ -592,7 +575,7 @@ function renderEpisodes() {
     if (!episodesList) return;
 
     if (!currentEpisodes || currentEpisodes.length === 0) {
-        episodesList.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">没有可用的集数</div>';
+        episodesList.innerHTML = '<div class="col-span-full text-center text-ink-2 py-8">没有可用的集数</div>';
         return;
     }
 
@@ -607,7 +590,7 @@ function renderEpisodes() {
         html += `
             <button id="episode-${realIndex}" 
                     ${actionAttrs('playEpisode', realIndex)} 
-                    class="px-4 py-2 ${isActive ? 'episode-active' : '!bg-[#222] hover:!bg-[#333] hover:!shadow-none'} !border ${isActive ? '!border-blue-500' : '!border-[#333]'} rounded-lg transition-colors text-center episode-btn">
+                    class="px-4 py-2 ${isActive ? 'episode-active' : '!bg-fill hover:!bg-fill-hover hover:!shadow-none text-ink'} !border ${isActive ? '!border-transparent' : '!border-transparent'} rounded-lg transition-colors text-center episode-btn">
                 ${realIndex + 1}
             </button>
         `;

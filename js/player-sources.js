@@ -122,15 +122,15 @@ async function showSwitchResourceModal() {
         html += `
             <div class="relative group ${isCurrentSource ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105 transition-transform'}" 
                  ${!isCurrentSource ? actionAttrs('switchToResource', sourceKey, result.vod_id) : ''}>
-                <div class="aspect-[2/3] rounded-lg overflow-hidden bg-gray-800">
+                <div class="aspect-[2/3] rounded-lg overflow-hidden bg-surface-2">
                     <img src="${escapeHtml(safeHttpUrl(result.vod_pic))}" 
                          alt="${escapeHtml(result.vod_name)}"
                          class="w-full h-full object-cover"
                          data-fallback="placeholder">
                 </div>
                 <div class="mt-1">
-                    <div class="text-xs font-medium text-gray-200 truncate">${escapeHtml(result.vod_name)}</div>
-                    <div class="text-[10px] text-gray-400">${escapeHtml(sourceName)}</div>
+                    <div class="text-xs font-medium text-ink truncate">${escapeHtml(result.vod_name)}</div>
+                    <div class="text-[10px] text-ink-2">${escapeHtml(sourceName)}</div>
                 </div>
                 ${isCurrentSource ? `
                     <div class="absolute inset-0 flex items-center justify-center">

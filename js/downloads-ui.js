@@ -184,7 +184,7 @@
         copyButton.replaceWith(wrapper);
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'px-3 py-1.5 bg-[#333] hover:bg-[#444] rounded text-sm transition-colors flex items-center gap-1 download-cache-btn';
+        button.className = 'px-3 py-1.5 bg-fill hover:bg-fill-hover rounded text-sm transition-colors flex items-center gap-1 download-cache-btn';
         button.innerHTML = `${ICON_DOWNLOAD}<span>缓存全部</span>`;
         button.addEventListener('click', () => addToDownloads(
             { title: series.title, vodId: series.vodId || '', sourceCode: series.sourceCode || '', episodes: series.episodes.slice() },
@@ -205,7 +205,7 @@
 
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'px-3 py-1 bg-[#222] hover:bg-[#333] border border-[#333] rounded-lg transition flex items-center gap-1 flex-shrink-0 download-cache-btn';
+        button.className = 'px-3 py-1 bg-fill hover:bg-fill-hover border border-separator rounded-lg transition flex items-center gap-1 flex-shrink-0 download-cache-btn';
         button.innerHTML = `${ICON_DOWNLOAD}<span>缓存</span>`;
         lockButton.parentElement.style.position = 'relative';
         lockButton.parentElement.insertBefore(button, lockButton);

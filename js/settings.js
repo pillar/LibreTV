@@ -23,10 +23,10 @@ function initAPICheckboxes() {
         checkbox.className = 'flex items-center';
         checkbox.innerHTML = `
             <input type="checkbox" id="api_${apiKey}" 
-                   class="form-checkbox h-3 w-3 text-blue-600 bg-[#222] border border-[#333]" 
+                   class="form-checkbox h-3 w-3 text-blue-600 bg-fill border border-separator" 
                    ${checked ? 'checked' : ''} 
                    data-api="${apiKey}">
-            <label for="api_${apiKey}" class="ml-1 text-xs text-gray-400 truncate${isSourceUnavailable(apiKey) ? ' source-unavailable" title="最近连续搜索失败，暂时跳过' : ''}">${api.name}</label>
+            <label for="api_${apiKey}" class="ml-1 text-xs text-ink-2 truncate${isSourceUnavailable(apiKey) ? ' source-unavailable" title="最近连续搜索失败，暂时跳过' : ''}">${api.name}</label>
         `;
         normaldiv.appendChild(checkbox);
 
@@ -94,18 +94,18 @@ function renderCustomAPIsList() {
     if (!container) return;
 
     if (customAPIs.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-500 text-center my-2">未添加自定义API</p>';
+        container.innerHTML = '<p class="text-xs text-ink-3 text-center my-2">未添加自定义API</p>';
         return;
     }
 
     container.innerHTML = '';
     customAPIs.forEach((api, index) => {
         const apiItem = document.createElement('div');
-        apiItem.className = 'flex items-center justify-between p-1 mb-1 bg-[#222] rounded';
+        apiItem.className = 'flex items-center justify-between p-1 mb-1 bg-fill rounded';
         const textColorClass = api.isAdult ? 'text-pink-400' : 'text-white';
         const adultTag = api.isAdult ? '<span class="text-xs text-pink-400 mr-1">(18+)</span>' : '';
         // 新增 detail 地址显示
-        const detailLine = api.detail ? `<div class="text-xs text-gray-400 truncate">detail: ${escapeHtml(api.detail)}</div>` : '';
+        const detailLine = api.detail ? `<div class="text-xs text-ink-2 truncate">detail: ${escapeHtml(api.detail)}</div>` : '';
         apiItem.innerHTML = `
             <div class="flex items-center flex-1 min-w-0">
                 <input type="checkbox" id="custom_api_${index}" 
@@ -116,13 +116,13 @@ function renderCustomAPIsList() {
                     <div class="text-xs font-medium ${textColorClass} truncate">
                         ${adultTag}${escapeHtml(api.name)}
                     </div>
-                    <div class="text-xs text-gray-500 truncate">${escapeHtml(api.url)}</div>
+                    <div class="text-xs text-ink-3 truncate">${escapeHtml(api.url)}</div>
                     ${detailLine}
                 </div>
             </div>
             <div class="flex items-center">
                 <button class="text-blue-500 hover:text-blue-700 text-xs px-1" ${actionAttrs('editCustomApi', index)}>✎</button>
-                <button class="text-red-500 hover:text-red-700 text-xs px-1" ${actionAttrs('removeCustomApi', index)}>✕</button>
+                <button class="text-danger hover:text-red-700 text-xs px-1" ${actionAttrs('removeCustomApi', index)}>✕</button>
             </div>
         `;
         container.appendChild(apiItem);
@@ -148,7 +148,7 @@ function editCustomApi(index) {
         const buttonContainer = form.querySelector('div:last-child');
         buttonContainer.innerHTML = `
             <button ${actionAttrs('updateCustomApi', index)} class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">更新</button>
-            <button data-action="cancelEditCustomApi" class="bg-[#444] hover:bg-[#555] text-white px-3 py-1 rounded text-xs">取消</button>
+            <button data-action="cancelEditCustomApi" class="bg-fill hover:bg-fill-hover text-white px-3 py-1 rounded text-xs">取消</button>
         `;
     }
 }
@@ -209,7 +209,7 @@ function restoreAddCustomApiButtons() {
     const buttonContainer = form.querySelector('div:last-child');
     buttonContainer.innerHTML = `
         <button data-action="addCustomApi" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">添加</button>
-        <button data-action="cancelAddCustomApi" class="bg-[#444] hover:bg-[#555] text-white px-3 py-1 rounded text-xs">取消</button>
+        <button data-action="cancelAddCustomApi" class="bg-fill hover:bg-fill-hover text-white px-3 py-1 rounded text-xs">取消</button>
     `;
 }
 

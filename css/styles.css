@@ -2,13 +2,8 @@
 
 .close-btn {
     position: absolute;
-    top: 12px;
     right: 12px;
-    background: #222;
-    border: 1px solid #333;
-    border-radius: 8px;
     padding: 6px;
-    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -18,7 +13,6 @@
 }
 
 .close-btn:hover {
-    background: #333;
     border-color: #555;
 }
 
@@ -26,23 +20,6 @@
     width: 16px;
     height: 16px;
     stroke: currentColor;
-}
-
-:root {
-    /* 赛博影视主题配色方案 - 柔和版 */
-    --primary-color: #00ccff;       /* 霓虹蓝主色调 */
-    --primary-light: #33d6ff;       /* 浅霓虹蓝变体 */
-    --secondary-color: #0f1622;     /* 深蓝黑背景色 */
-    --accent-color: #ff3c78;        /* 霓虹粉强调色 */
-    --text-color: #e6f2ff;          /* 柔和的蓝白色文本 */
-    --text-muted: #8599b2;          /* 淡蓝灰色次级文本 */
-    --border-color: rgba(0, 204, 255, 0.15);
-    --page-gradient-start: #0f1622; /* 深蓝黑起始色 */
-    --page-gradient-end: #192231;   /* 深靛蓝结束色 */
-    --card-gradient-start: #121b29; /* 卡片起始色 */
-    --card-gradient-end: #1c2939;   /* 卡片结束色 */
-    --card-accent: rgba(0, 204, 255, 0.12); /* 霓虹蓝卡片强调色 */
-    --card-hover-border: rgba(0, 204, 255, 0.5); /* 悬停边框颜色 */
 }
 
 .page-bg {
@@ -58,18 +35,9 @@
     background-size: cover, 100px 100px, 50px 50px, 75px 75px;
 }
 
-button, .card-hover {
-    transition: all 0.3s ease;
-}
-
 /* 改进卡片适应不同内容长度 */
 .card-hover {
-    border: 1px solid var(--border-color);
-    background: linear-gradient(135deg, var(--card-gradient-start), var(--card-gradient-end));
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    position: relative;
     overflow: hidden;
-    border-radius: 6px;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -107,20 +75,12 @@ button, .card-hover {
     transition: left 0.6s ease;
 }
 
-.card-hover:hover {
-    border-color: var(--card-hover-border);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
-}
-
 .card-hover:hover::before {
     left: 100%;
 }
 
 .gradient-text {
-    background: linear-gradient(to right, var(--primary-color), var(--accent-color));
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
 /* 改进设置面板样式 */
@@ -128,8 +88,6 @@ button, .card-hover {
     scrollbar-width: thin;
     scrollbar-color: #444 #222;
     transform: translateX(100%);
-    transition: transform 0.3s ease;
-    background: linear-gradient(135deg, var(--page-gradient-end), var(--page-gradient-start));
     border-left: 1px solid var(--primary-color);
 }
 
@@ -156,12 +114,10 @@ button, .card-hover {
 }
 
 ::-webkit-scrollbar-track {
-    background: #111;
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #333;
     border-radius: 4px;
     transition: all 0.3s ease;
 }
@@ -172,30 +128,16 @@ button, .card-hover {
 
 * {
     scrollbar-width: thin;
-    scrollbar-color: #333 #111;
 }
 
 .search-tag {
-    background: linear-gradient(135deg, var(--card-gradient-start), var(--card-gradient-end));
-    color: var(--text-color);
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
     font-size: 0.875rem;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.search-tag:hover {
-    background: linear-gradient(135deg, var(--card-gradient-end), var(--card-gradient-start));
-    border-color: var(--primary-color);
 }
 
 .footer {
     width: 100%;
     transition: all 0.3s ease;
     margin-top: auto;
-    background: linear-gradient(to bottom, transparent, var(--page-gradient-start));
-    border-top: 1px solid var(--border-color);
 }
 
 .footer a:hover {
@@ -263,23 +205,12 @@ body {
     animation: fadeOut 0.3s forwards;
 }
 
-#modal > div {
-    background: linear-gradient(135deg, var(--card-gradient-start), var(--card-gradient-end));
-    border: 1px solid var(--primary-color);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(0, 204, 255, 0.1);
-    border-radius: 8px;
-}
-
 #episodesGrid button {
-    background: rgba(0, 204, 255, 0.08);
-    border: 1px solid rgba(0, 204, 255, 0.2);
     transition: all 0.2s ease;
 }
 
 #episodesGrid button:hover {
-    background: rgba(0, 204, 255, 0.15);
     border-color: var(--primary-color);
-    box-shadow: 0 0 8px rgba(0, 204, 255, 0.3);
 }
 
 #yellowFilterToggle:checked + .toggle-bg {
@@ -311,7 +242,6 @@ body {
 
 .toggle-dot {
     transition: transform 0.3s ease-in-out;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .toggle-bg {
@@ -333,9 +263,6 @@ body {
     -moz-appearance: none;
     height: 14px;
     width: 14px;
-    background-color: #222;
-    border: 1px solid #333;
-    border-radius: 3px;
     cursor: pointer;
     position: relative;
     outline: none;
@@ -343,7 +270,6 @@ body {
 
 .form-checkbox:checked {
     background-color: var(--primary-color);
-    border-color: var(--primary-color);
 }
 
 .form-checkbox:checked::after {
@@ -467,7 +393,6 @@ body {
     padding: 0.25rem 0;
     margin-top: 0.5rem;
     border-top: 1px solid #333;
-    color: #8599b2;
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -580,8 +505,6 @@ body {
 
 /* 历史记录面板样式 */
 .history-panel {
-    box-shadow: 2px 0 10px rgba(0,0,0,0.5);
-    transition: transform 0.3s ease-in-out;
     overflow-y: scroll; /* 始终显示滚动条，防止宽度变化 */
     overflow-x: hidden; /* 防止水平滚动 */
     width: 320px; /* 固定宽度 */
@@ -598,12 +521,8 @@ body {
 }
 
 /* 历史记录项样式优化 */
-.history-item {
-    background: #1a1a1a;
-    border-radius: 6px; /* 减小圆角 */
-    border: 1px solid #333;
+.history-item { /* 减小圆角 */
     overflow: hidden;
-    transition: all 0.2s ease;
     padding: 10px 14px;
     position: relative;
     margin-bottom: 8px; /* 减小底部间距 */
@@ -611,9 +530,7 @@ body {
 }
 
 .history-item:hover {
-    transform: translateY(-2px);
     border-color: #444;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 /* 添加组悬停效果，使删除按钮在悬停时显示 */
@@ -633,23 +550,13 @@ body {
 }
 
 .history-meta {
-    color: #bbb;
     font-size: 0.75rem; /* 减小字体大小 */
     display: flex;
     flex-wrap: wrap;
     margin-bottom: 1px; /* 减小边距 */
 }
 
-.history-episode {
-    color: #3b82f6;
-}
-
-.history-source {
-    color: #10b981;
-}
-
 .history-time {
-    color: #888;
     font-size: 0.7rem; /* 减小字体大小 */
     margin-top: 1px; /* 减小顶部边距 */
 }
@@ -663,7 +570,6 @@ body {
 }
 
 .history-time {
-    color: #888;
     font-size: 0.8rem;
     margin-top: 4px;
 }
@@ -690,13 +596,11 @@ body {
 
 .progress-filled {
     height: 100%;
-    background: linear-gradient(to right, #00ccff, #3b82f6);
     border-radius: 2px;
 }
 
 .progress-text {
     font-size: 10px;
-    color: #888;
     text-align: right;
 }
 
@@ -829,7 +733,6 @@ body {
 /* 确保Toast显示在顶层并有适当的转换效果 */
 #toast {
     z-index: 9999; /* 确保显示在最上层 */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     min-width: 200px;
     text-align: center;
     pointer-events: none; /* 防止toast阻挡点击事件 */
@@ -844,9 +747,6 @@ body {
 
 /* 详情模态框样式优化 */
 #modal .modal-detail-info {
-    background: linear-gradient(135deg, #0a0a0a, #111);
-    border: 1px solid #222;
-    border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1.5rem;
 }
@@ -871,14 +771,12 @@ body {
 }
 
 #modal .detail-label {
-    color: #9ca3af;
     font-weight: 500;
     min-width: 3rem;
     flex-shrink: 0;
 }
 
 #modal .detail-value {
-    color: white;
     flex: 1;
     word-break: break-word;
 }
@@ -890,7 +788,6 @@ body {
 }
 
 #modal .detail-desc-content {
-    color: #d1d5db;
     font-size: 0.875rem;
     line-height: 1.6;
     max-height: 8rem;

@@ -81,7 +81,7 @@ function loadViewingHistory() {
     const history = getViewingHistory();
 
     if (history.length === 0) {
-        historyList.innerHTML = `<div class="text-center text-gray-500 py-8">暂无观看记录</div>`;
+        historyList.innerHTML = `<div class="text-center text-ink-3 py-8">暂无观看记录</div>`;
         return;
     }
 
@@ -99,7 +99,7 @@ function loadViewingHistory() {
         // 格式化剧集信息
         let episodeInfoHtml = '';
         if (item.episodes && Array.isArray(item.episodes) && item.episodes.length > 0) {
-            episodeInfoHtml = `<span class="text-xs text-gray-400">共${item.episodes.length}集</span>`;
+            episodeInfoHtml = `<span class="text-xs text-ink-2">共${item.episodes.length}集</span>`;
         }
 
         // 格式化进度信息
@@ -123,7 +123,7 @@ function loadViewingHistory() {
         return `
             <div class="history-item cursor-pointer relative group" ${actionAttrs('playFromHistory', item.url)}>
                 <button ${actionAttrs('deleteHistoryItem', encodeURIComponent(item.url))}
-                        class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-400 p-1 rounded-full hover:bg-gray-800 z-10"
+                        class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-ink-2 hover:text-red-400 p-1 rounded-full hover:bg-fill-hover z-10"
                         title="删除记录">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>

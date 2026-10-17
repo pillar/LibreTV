@@ -229,8 +229,8 @@ function renderSearchHistory() {
     // 创建一个包含标题和清除按钮的行
     historyContainer.innerHTML = `
         <div class="flex justify-between items-center w-full mb-2">
-            <div class="text-gray-500">最近搜索:</div>
-            <button id="clearHistoryBtn" class="text-gray-500 hover:text-white transition-colors"
+            <div class="text-ink-3">最近搜索:</div>
+            <button id="clearHistoryBtn" class="text-ink-3 hover:text-ink transition-colors"
                     data-action="clearSearchHistory" aria-label="清除搜索历史">
                 清除搜索历史
             </button>
@@ -246,7 +246,7 @@ function renderSearchHistory() {
 
         // 添加删除按钮
         const deleteButton = document.createElement('span');
-        deleteButton.className = 'pl-1 text-gray-500 hover:text-red-500 transition-colors';
+        deleteButton.className = 'pl-1 text-ink-3 hover:text-red-500 transition-colors';
         deleteButton.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
         deleteButton.onclick = function(e) {
             // 阻止事件冒泡，避免触发搜索
@@ -320,16 +320,16 @@ function clearLocalStorage() {
     modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40';
 
     modal.innerHTML = `
-        <div class="bg-[#191919] rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
-            <button id="closeBoxModal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
+        <div class="bg-surface-2 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+            <button id="closeBoxModal" class="absolute top-4 right-4 text-ink-2 hover:text-ink text-xl">&times;</button>
 
-            <h3 class="text-xl font-bold text-red-500 mb-4">警告</h3>
+            <h3 class="text-xl font-bold text-danger mb-4">警告</h3>
 
             <div class="mb-0">
-                <div class="text-sm font-medium text-gray-300">确定要清除页面缓存吗？</div>
-                <div class="text-sm font-medium text-gray-300 mb-4">此功能会删除你的观看记录、自定义 API 接口和 Cookie，<scan class="text-red-500 font-bold">此操作不可恢复！</scan></div>
+                <div class="text-sm font-medium text-ink-soft">确定要清除页面缓存吗？</div>
+                <div class="text-sm font-medium text-ink-soft mb-4">此功能会删除你的观看记录、自定义 API 接口和 Cookie，<scan class="text-danger font-bold">此操作不可恢复！</scan></div>
                 <div class="flex justify-end space-x-2">
-                    <button id="confirmBoxModal" class="ml-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-1 rounded">确定</button>
+                    <button id="confirmBoxModal" class="ml-2 bg-fill hover:bg-fill-hover text-white px-4 py-1 rounded">确定</button>
                     <button id="cancelBoxModal" class="ml-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-1 rounded">取消</button>
                 </div>
             </div>
@@ -358,13 +358,13 @@ function clearLocalStorage() {
         }
 
         modal.innerHTML = `
-            <div class="bg-[#191919] rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
-                <button id="closeBoxModal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
+            <div class="bg-surface-2 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+                <button id="closeBoxModal" class="absolute top-4 right-4 text-ink-2 hover:text-ink text-xl">&times;</button>
 
                 <h3 class="text-xl font-bold text-white mb-4">提示</h3>
 
                 <div class="mb-4">
-                    <div class="text-sm font-medium text-gray-300 mb-4">页面缓存和Cookie已清除，<span id="countdown">3</span> 秒后自动刷新本页面。</div>
+                    <div class="text-sm font-medium text-ink-soft mb-4">页面缓存和Cookie已清除，<span id="countdown">3</span> 秒后自动刷新本页面。</div>
                 </div>
             </div>`;
 
@@ -409,11 +409,11 @@ function showImportBox(fun) {
     modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40';
 
     modal.innerHTML = `
-        <div class="bg-[#191919] rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
-            <button id="closeBoxModal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
+        <div class="bg-surface-2 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+            <button id="closeBoxModal" class="absolute top-4 right-4 text-ink-2 hover:text-ink text-xl">&times;</button>
 
             <div class="m-4">
-                <div id="dropZone" class="w-full py-9 bg-[#111] rounded-2xl border border-gray-300 gap-3 grid border-dashed">
+                <div id="dropZone" class="w-full py-9 bg-surface rounded-2xl border border-gray-300 gap-3 grid border-dashed">
                     <div class="grid gap-1">
                         <svg class="mx-auto" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g id="File">

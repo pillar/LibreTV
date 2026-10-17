@@ -16,19 +16,19 @@ async function importConfigFromUrl() {
     modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40';
 
     modal.innerHTML = `
-        <div class="bg-[#191919] rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
-            <button id="closeUrlModal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
+        <div class="bg-surface-2 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+            <button id="closeUrlModal" class="absolute top-4 right-4 text-ink-2 hover:text-ink text-xl">&times;</button>
             
             <h3 class="text-xl font-bold mb-4">从URL导入配置</h3>
             
             <div class="mb-4">
                 <input type="text" id="configUrl" placeholder="输入配置文件URL" 
-                       class="w-full px-3 py-2 bg-[#222] border border-[#333] rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                       class="w-full px-3 py-2 bg-fill border border-separator rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
             </div>
             
             <div class="flex justify-end space-x-2">
                 <button id="confirmUrlImport" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">导入</button>
-                <button id="cancelUrlImport" class="bg-[#444] hover:bg-[#555] text-white px-4 py-2 rounded">取消</button>
+                <button id="cancelUrlImport" class="bg-fill hover:bg-fill-hover text-white px-4 py-2 rounded">取消</button>
             </div>
         </div>`;
 

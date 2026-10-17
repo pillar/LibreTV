@@ -19,15 +19,15 @@ function showTagManageModal() {
     
     // 模态框内容
     modal.innerHTML = `
-        <div class="bg-[#191919] rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
-            <button id="closeTagModal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
+        <div class="bg-surface-2 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+            <button id="closeTagModal" class="absolute top-4 right-4 text-ink-2 hover:text-ink text-xl">&times;</button>
             
             <h3 class="text-xl font-bold text-white mb-4">标签管理 (${isMovie ? '电影' : '电视剧'})</h3>
             
             <div class="mb-4">
                 <div class="flex justify-between items-center mb-2">
-                    <h4 class="text-lg font-medium text-gray-300">标签列表</h4>
-                    <button id="resetTagsBtn" class="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded">
+                    <h4 class="text-lg font-medium text-ink-soft">标签列表</h4>
+                    <button id="resetTagsBtn" class="text-xs px-2 py-1 bg-fill hover:bg-fill-hover text-white rounded">
                         恢复默认标签
                     </button>
                 </div>
@@ -36,28 +36,28 @@ function showTagManageModal() {
                         // "热门"标签不能删除
                         const canDelete = tag !== '热门';
                         return `
-                            <div class="bg-[#1a1a1a] text-gray-300 py-1.5 px-3 rounded text-sm font-medium flex justify-between items-center group">
+                            <div class="bg-surface-2 text-ink-soft py-1.5 px-3 rounded text-sm font-medium flex justify-between items-center group">
                                 <span>${tag}</span>
                                 ${canDelete ? 
-                                    `<button class="delete-tag-btn text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                                    `<button class="delete-tag-btn text-ink-3 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
                                         data-tag="${tag}">✕</button>` : 
-                                    `<span class="text-gray-500 text-xs italic opacity-0 group-hover:opacity-100">必需</span>`
+                                    `<span class="text-ink-3 text-xs italic opacity-0 group-hover:opacity-100">必需</span>`
                                 }
                             </div>
                         `;
                     }).join('') : 
-                    `<div class="col-span-full text-center py-4 text-gray-500">无标签，请添加或恢复默认</div>`}
+                    `<div class="col-span-full text-center py-4 text-ink-3">无标签，请添加或恢复默认</div>`}
                 </div>
             </div>
             
-            <div class="border-t border-gray-700 pt-4">
-                <h4 class="text-lg font-medium text-gray-300 mb-3">添加新标签</h4>
+            <div class="border-t border-separator pt-4">
+                <h4 class="text-lg font-medium text-ink-soft mb-3">添加新标签</h4>
                 <form id="addTagForm" class="flex items-center">
                     <input type="text" id="newTagInput" placeholder="输入标签名称..." 
-                           class="flex-1 bg-[#222] text-white border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-pink-500">
+                           class="flex-1 bg-fill text-white border border-separator rounded px-3 py-2 focus:outline-none focus:border-pink-500">
                     <button type="submit" class="ml-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded">添加</button>
                 </form>
-                <p class="text-xs text-gray-500 mt-2">提示：标签名称不能为空，不能重复，不能包含特殊字符</p>
+                <p class="text-xs text-ink-3 mt-2">提示：标签名称不能为空，不能重复，不能包含特殊字符</p>
             </div>
         </div>
     `;

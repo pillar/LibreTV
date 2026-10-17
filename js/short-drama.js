@@ -122,7 +122,7 @@ function renderShortDramaCards(groups, container) {
     if (!groups.length) {
         container.innerHTML = `
             <div class="col-span-full text-center py-8">
-                <div class="text-gray-400">暂无短剧，请换个标签或稍后再试</div>
+                <div class="text-ink-2">暂无短剧，请换个标签或稍后再试</div>
                 <button type="button" class="douban-retry mt-3" data-action="retryDoubanRecommend">重试</button>
             </div>
         `;
@@ -133,7 +133,7 @@ function renderShortDramaCards(groups, container) {
         const cover = safeHttpUrl(item.vod_pic);
         const badge = item._sources.length > 1 ? `${item._sources.length} 个源` : item.source_name;
         return `
-            <div class="douban-card short-drama-card bg-[#111] rounded-lg overflow-hidden flex flex-col cursor-pointer shadow-md"
+            <div class="douban-card short-drama-card bg-surface rounded-lg overflow-hidden flex flex-col cursor-pointer shadow-md"
                  ${actionAttrs('openShortDrama', index)}>
                 <div class="douban-cover-wrap relative w-full aspect-[2/3] overflow-hidden">
                     ${cover ? `<img src="${escapeHtml(cover)}" alt="${safeTitle}" class="douban-cover w-full h-full object-cover"
@@ -142,7 +142,7 @@ function renderShortDramaCards(groups, container) {
                     ${item.vod_remarks ? `<div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-sm">${escapeHtml(item.vod_remarks)}</div>` : ''}
                     <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-sm">${escapeHtml(badge)}</div>
                 </div>
-                <div class="p-2 text-center bg-[#111]">
+                <div class="p-2 text-center bg-surface">
                     <div class="text-sm font-medium text-white truncate" title="${safeTitle}">${safeTitle}</div>
                 </div>
             </div>

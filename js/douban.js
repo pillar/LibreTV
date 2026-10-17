@@ -184,7 +184,7 @@ function fillAndSearch(title) {
     }
 }
 
-// 填充搜索框，确保豆瓣资源API被选中，然后执行搜索
+// 填充搜索框并执行搜索
 async function fillAndSearchWithDouban(title) {
     if (!title) return;
     
@@ -193,32 +193,6 @@ async function fillAndSearchWithDouban(title) {
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
-    
-    // 确保豆瓣资源API被选中
-    if (typeof selectedAPIs !== 'undefined' && !selectedAPIs.includes('dbzy')) {
-        // 在设置中勾选豆瓣资源API复选框
-        const doubanCheckbox = document.querySelector('input[id="api_dbzy"]');
-        if (doubanCheckbox) {
-            doubanCheckbox.checked = true;
-            
-            // 触发updateSelectedAPIs函数以更新状态
-            if (typeof updateSelectedAPIs === 'function') {
-                updateSelectedAPIs();
-            } else {
-                // 如果函数不可用，则手动添加到selectedAPIs
-                selectedAPIs.push('dbzy');
-                localStorage.setItem('selectedAPIs', JSON.stringify(selectedAPIs));
-                
-                // 更新选中API计数（如果有这个元素）
-                const countEl = document.getElementById('selectedAPICount');
-                if (countEl) {
-                    countEl.textContent = selectedAPIs.length;
-                }
-            }
-            
-            showToast('已自动选择豆瓣资源API', 'info');
-        }
-    }
     
     // 填充搜索框并执行搜索
     const input = document.getElementById('searchInput');
@@ -251,64 +225,42 @@ async function fillAndSearchWithDouban(title) {
     }
 }
 
-// 渲染电影/电视剧切换器
+// 渲染电影 / 电视剧 / 短剧切换器（短剧内容来自资源站，见 js/short-drama.js）
+const DOUBAN_MODES = [
+    { mode: 'movie', button: 'douban-movie-toggle', title: '豆瓣热门' },
+    { mode: 'tv', button: 'douban-tv-toggle', title: '豆瓣热门' },
+    { mode: 'short', button: 'douban-short-toggle', title: '热门短剧' }
+];
+
+function setDoubanMode(mode) {
+    if (doubanMovieTvCurrentSwitch === mode) return;
+    doubanMovieTvCurrentSwitch = mode;
+    for (const item of DOUBAN_MODES) {
+        const button = document.getElementById(item.button);
+        if (!button) continue;
+        const active = item.mode === mode;
+        button.classList.toggle('bg-pink-600', active);
+        button.classList.toggle('text-white', active);
+        button.classList.toggle('text-gray-300', !active);
+        if (active) {
+            const title = document.getElementById('douban-title');
+            if (title) title.textContent = item.title;
+        }
+    }
+    doubanCurrentTag = mode === 'short' ? SHORT_DRAMA_LATEST : '热门';
+    doubanPageStart = 0;
+    renderDoubanTags();
+    setupDoubanRefreshBtn();
+    if (localStorage.getItem('doubanEnabled') === 'true') {
+        renderRecommend(doubanCurrentTag, doubanPageSize, doubanPageStart);
+    }
+}
+
 function renderDoubanMovieTvSwitch() {
-    // 获取切换按钮元素
-    const movieToggle = document.getElementById('douban-movie-toggle');
-    const tvToggle = document.getElementById('douban-tv-toggle');
-
-    if (!movieToggle ||!tvToggle) return;
-
-    movieToggle.addEventListener('click', function() {
-        if (doubanMovieTvCurrentSwitch !== 'movie') {
-            // 更新按钮样式
-            movieToggle.classList.add('bg-pink-600', 'text-white');
-            movieToggle.classList.remove('text-gray-300');
-            
-            tvToggle.classList.remove('bg-pink-600', 'text-white');
-            tvToggle.classList.add('text-gray-300');
-            
-            doubanMovieTvCurrentSwitch = 'movie';
-            doubanCurrentTag = '热门';
-
-            // 重新加载豆瓣内容
-            renderDoubanTags(movieTags);
-
-            // 换一批按钮事件监听
-            setupDoubanRefreshBtn();
-            
-            // 初始加载热门内容
-            if (localStorage.getItem('doubanEnabled') === 'true') {
-                renderRecommend(doubanCurrentTag, doubanPageSize, doubanPageStart);
-            }
-        }
-    });
-    
-    // 电视剧按钮点击事件
-    tvToggle.addEventListener('click', function() {
-        if (doubanMovieTvCurrentSwitch !== 'tv') {
-            // 更新按钮样式
-            tvToggle.classList.add('bg-pink-600', 'text-white');
-            tvToggle.classList.remove('text-gray-300');
-            
-            movieToggle.classList.remove('bg-pink-600', 'text-white');
-            movieToggle.classList.add('text-gray-300');
-            
-            doubanMovieTvCurrentSwitch = 'tv';
-            doubanCurrentTag = '热门';
-
-            // 重新加载豆瓣内容
-            renderDoubanTags(tvTags);
-
-            // 换一批按钮事件监听
-            setupDoubanRefreshBtn();
-            
-            // 初始加载热门内容
-            if (localStorage.getItem('doubanEnabled') === 'true') {
-                renderRecommend(doubanCurrentTag, doubanPageSize, doubanPageStart);
-            }
-        }
-    });
+    for (const item of DOUBAN_MODES) {
+        const button = document.getElementById(item.button);
+        if (button) button.addEventListener('click', () => setDoubanMode(item.mode));
+    }
 }
 
 // 渲染豆瓣标签选择器
@@ -316,20 +268,23 @@ function renderDoubanTags(tags) {
     const tagContainer = document.getElementById('douban-tags');
     if (!tagContainer) return;
     
-    // 确定当前应该使用的标签列表
-    const currentTags = doubanMovieTvCurrentSwitch === 'movie' ? movieTags : tvTags;
+    // 确定当前应该使用的标签列表（短剧的标签固定，不可管理）
+    const isShort = doubanMovieTvCurrentSwitch === 'short';
+    const currentTags = isShort ? shortDramaTags() : doubanMovieTvCurrentSwitch === 'movie' ? movieTags : tvTags;
     
     // 清空标签容器
     tagContainer.innerHTML = '';
 
     // 先添加标签管理按钮
-    const manageBtn = document.createElement('button');
-    manageBtn.className = 'py-1.5 px-3.5 rounded text-sm font-medium transition-all duration-300 bg-[#1a1a1a] text-gray-300 hover:bg-pink-700 hover:text-white border border-[#333] hover:border-white';
-    manageBtn.innerHTML = '<span class="flex items-center"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>管理标签</span>';
-    manageBtn.onclick = function() {
-        showTagManageModal();
-    };
-    tagContainer.appendChild(manageBtn);
+    if (!isShort) {
+        const manageBtn = document.createElement('button');
+        manageBtn.className = 'py-1.5 px-3.5 rounded text-sm font-medium transition-all duration-300 bg-[#1a1a1a] text-gray-300 hover:bg-pink-700 hover:text-white border border-[#333] hover:border-white';
+        manageBtn.innerHTML = '<span class="flex items-center"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>管理标签</span>';
+        manageBtn.onclick = function() {
+            showTagManageModal();
+        };
+        tagContainer.appendChild(manageBtn);
+    }
 
     // 添加所有标签
     currentTags.forEach(tag => {
@@ -422,6 +377,11 @@ function renderRecommend(tag, pageLimit, pageStart) {
 
     container.classList.add("relative");
     container.insertAdjacentHTML('beforeend', loadingOverlayHTML);
+
+    if (doubanMovieTvCurrentSwitch === 'short') {
+        renderShortDrama(tag, Math.floor(pageStart / pageLimit) + 1, container, requestSeq);
+        return;
+    }
     
     const target = `https://movie.douban.com/j/search_subjects?type=${encodeURIComponent(doubanMovieTvCurrentSwitch)}&tag=${encodeURIComponent(tag)}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`;
     

@@ -37,10 +37,6 @@ const API_SITES = {
         api: 'https://bfzyapi.com/api.php/provide/vod',
         name: '暴风资源',
     },
-    tyyszy: {
-        api: 'https://tyyszy.com/api.php/provide/vod',
-        name: '天涯资源',
-    },
     // xiaomaomi: {
     //     api: 'https://zy.xiaomaomi.cc/api.php/provide/vod',
     //     name: '小猫咪资源',
@@ -50,11 +46,6 @@ const API_SITES = {
         name: '非凡影视',
         detail: 'http://ffzy5.tv', 
     },
-    heimuer: {
-        api: 'https://json.heimuer.xyz/api.php/provide/vod',
-        name: '黑木耳',
-        detail: 'https://heimuer.tv', 
-    },
     zy360: {
         api: 'https://360zy.com/api.php/provide/vod',
         name: '360资源',
@@ -62,27 +53,11 @@ const API_SITES = {
     iqiyi: {
         api: 'https://www.iqiyizyapi.com/api.php/provide/vod',
         name: 'iqiyi资源',
-    },
-    wolong: {
-        api: 'https://wolongzyw.com/api.php/provide/vod',
-        name: '卧龙资源',
     }, 
-    hwba: {
-        api: 'https://cjhwba.com/api.php/provide/vod',
-        name: '华为吧资源',
-    },
     jisu: {
         api: 'https://jszyapi.com/api.php/provide/vod',
         name: '极速资源',
         detail: 'https://jszyapi.com', 
-    },
-    dbzy: {
-        api: 'https://dbzy.tv/api.php/provide/vod',
-        name: '豆瓣资源',
-    },
-    mozhua: {
-        api: 'https://mozhuazy.com/api.php/provide/vod',
-        name: '魔爪资源',
     },
     mdzy: {
         api: 'https://www.mdzyapi.com/api.php/provide/vod',
@@ -92,21 +67,9 @@ const API_SITES = {
         api: 'https://api.zuidapi.com/api.php/provide/vod',
         name: '最大资源'
     },
-    yinghua: {
-        api: 'https://m3u8.apiyhzy.com/api.php/provide/vod',
-        name: '樱花资源'
-    },
     baidu: {
         api: 'https://api.apibdzy.com/api.php/provide/vod',
         name: '百度云资源'
-    },
-    wujin: {
-        api: 'https://api.wujinapi.me/api.php/provide/vod',
-        name: '无尽资源'
-    },
-    wwzy: {
-        api: 'https://wwzy.tv/api.php/provide/vod',
-        name: '旺旺短剧'
     },
     ikun: {
         api: 'https://ikunzyapi.com/api.php/provide/vod',
@@ -190,6 +153,20 @@ const AGGREGATED_SEARCH_CONFIG = {
     parallelRequests: true,   // 是否并行请求所有源
     showSourceBadges: true    // 是否显示来源徽章
 };
+
+// 短剧（首页「短剧」频道，见 js/short-drama.js）：取自下列资源站的短剧分类。各站分类编号不同且会变化，运行时从 ?ac=list 识别：
+// 名称含「短剧」的分类为「最新」，其下的子分类按题材关键词归入各标签（名称含「擦边」的分类一律排除）。
+const SHORT_DRAMA_SOURCES = ['ruyi', 'dyttzy', 'bfzy', 'jisu', 'zy360'];
+const SHORT_DRAMA_GENRES = [
+    { name: '古装仙侠', keywords: ['古装', '仙侠'] },
+    { name: '现代都市', keywords: ['都市'] },
+    { name: '穿越年代', keywords: ['穿越', '年代'] },
+    { name: '重生民国', keywords: ['重生', '民国'] },
+    { name: '言情总裁', keywords: ['言情', '总裁', '恋爱', '女频'] },
+    { name: '反转爽剧', keywords: ['反转', '爽'] },
+    { name: '脑洞悬疑', keywords: ['脑洞', '悬疑'] },
+    { name: 'AI短剧', keywords: ['ai'] }
+];
 
 // 抽象API请求配置
 const API_CONFIG = {

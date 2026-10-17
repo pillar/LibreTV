@@ -851,14 +851,16 @@ body #doubanArea .bg-\[\#222\].rounded-full {
 }
 
 body #douban-movie-toggle,
-body #douban-tv-toggle {
+body #douban-tv-toggle,
+body #douban-short-toggle {
     border-radius: 999px;
     color: var(--ink);
     transition: background-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
 }
 
 body #douban-movie-toggle.bg-pink-600,
-body #douban-tv-toggle.bg-pink-600 {
+body #douban-tv-toggle.bg-pink-600,
+body #douban-short-toggle.bg-pink-600 {
     background: #fff;
     color: var(--ink);
     font-weight: 600;

@@ -9,7 +9,7 @@ const ACTIONS = new Set([
     'updateCustomApi', 'cancelEditCustomApi', 'importConfig', 'exportConfig', 'importConfigFromUrl',
     'clearLocalStorage', 'clearSearchInput', 'search', 'clearSearchHistory', 'openSearchResult',
     'closeModal', 'playVideo', 'copyLinks', 'toggleEpisodeOrder', 'playFromHistory', 'deleteHistoryItem',
-    'fillAndSearchWithDouban', 'retryDoubanRecommend',
+    'fillAndSearchWithDouban', 'retryDoubanRecommend', 'openShortDrama',
     // 播放页
     'goBack', 'playPreviousEpisode', 'playNextEpisode', 'toggleControlsLock', 'playEpisode',
     'showSwitchResourceModal', 'switchToResource'

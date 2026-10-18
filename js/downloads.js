@@ -109,6 +109,7 @@
 
     // ---- 下载执行 ----
     let running = null;          // 正在下载的条目 id
+    let runningTask = null;      // 正在下载的条目结束（含正在下载的分片收尾）时完成的 Promise
     let pauseRequested = false;  // 当前下载是否被要求暂停
 
     async function listDoneFiles(folder) {
@@ -191,9 +192,11 @@
         next.status = 'downloading';
         next.error = '';
         save(true); emit();
+        runningTask = runItem(next);
         try {
-            const finished = await runItem(next);
-            if (store.items[next.id]) next.status = finished ? 'done' : 'paused';
+            const finished = await runningTask;
+            // 收尾期间被重新排队（暂停后又继续、切到后台又回到前台）时保持排队，下面接着下载
+            if (store.items[next.id] && next.status !== 'queued') next.status = finished ? 'done' : 'paused';
         } catch (error) {
             if (store.items[next.id]) {
                 next.status = 'error';
@@ -201,6 +204,7 @@
             }
         }
         running = null;
+        runningTask = null;
         save(true); emit();
         if (store.items[next.id] && (next.status === 'done' || next.status === 'error')) {
             window.dispatchEvent(new CustomEvent('offlinedownload', { detail: { item: { ...next }, ok: next.status === 'done' } }));
@@ -211,7 +215,7 @@
     // 前台下载：切到后台时暂停正在下载的条目，回到前台后继续
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
-            if (running) {
+            if (running && store.items[running]) {
                 store.items[running].autoResume = true;
                 pauseRequested = true;
             }
@@ -261,7 +265,7 @@
         },
         resume(id) {
             const item = store.items[id];
-            if (!item || item.status === 'done' || running === id) return;
+            if (!item || item.status === 'done' || (running === id && !pauseRequested)) return;
             item.status = 'queued';
             save(true); emit(); pump();
         },
@@ -273,6 +277,8 @@
                 if (!Object.values(store.items).some(item => item.seriesKey === key)) delete store.series[key];
             });
             save(true); emit();
+            // 正在下载的分片收尾后才删除目录，否则它们会写回已删除的目录
+            if (running === id && runningTask) await runningTask.catch(() => {});
             await Filesystem.rmdir({ directory: DIRECTORY, path: folderOf(id), recursive: true }).catch(() => {});
         },
         // 已下载条目的本地播放地址（WebView 可访问的 capacitor:// / https://localhost 地址）

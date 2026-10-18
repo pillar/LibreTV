@@ -13,7 +13,9 @@
     const DIRECTORY = 'LIBRARY';
     const ROOT = 'downloads';
     const STORE_KEY = 'offlineDownloads';
-    const CONCURRENCY = 4;
+    // 同时下载的分片数：资源站单个连接常常只有几百 KB/s，要多开连接才能用满带宽。
+    // Android 模拟器实测三个资源站各一集：4 → 16 个连接，用时分别从 23 / 31 / 331 秒降到 13 / 16 / 71 秒
+    const CONCURRENCY = 16;
     const RETRIES = 2;
 
     // ---- 持久化：下载条目与剧集列表 ----

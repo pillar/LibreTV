@@ -20,7 +20,7 @@
     <!-- 预编译的 Tailwind 样式（npm run build:css），放在最后以保持与原运行时注入相同的覆盖顺序 -->
     <link rel="stylesheet" href="css/tailwind.css">
 </head>
-<body class="page-bg text-white">
+<body class="page-bg text-ink">
     <!-- 顶部导航栏 -->
     <nav class="tv-nav">
         <a href="#" data-action="resetToHome" class="tv-brand" aria-label="PlayAny TV 首页">
@@ -94,7 +94,7 @@
                 
                 <!-- API信息显示 -->
                 <div class="text-xs text-ink-3 flex justify-between items-center">
-                    <span>已选API数量：<span id="selectedApiCount" class="text-white">0</span></span>
+                    <span>已选API数量：<span id="selectedApiCount" class="text-ink">0</span></span>
                     <span id="siteStatus" class="ml-2"></span>
                 </div>
             </div>
@@ -111,10 +111,10 @@
                 
                 <!-- 添加自定义API表单 (默认隐藏) -->
                 <div id="addCustomApiForm" class="hidden mt-2 p-2 bg-surface-2 rounded-lg">
-                    <input type="text" id="customApiName" placeholder="API名称" class="w-full bg-fill border border-separator text-white px-2 py-1 rounded mb-2" autocomplete="off">
-                    <input type="text" id="customApiUrl" placeholder="https://abc.com" class="w-full bg-fill border border-separator text-white px-2 py-1 rounded mb-2" autocomplete="off">
+                    <input type="text" id="customApiName" placeholder="API名称" class="w-full bg-fill border border-separator text-ink px-2 py-1 rounded mb-2" autocomplete="off">
+                    <input type="text" id="customApiUrl" placeholder="https://abc.com" class="w-full bg-fill border border-separator text-ink px-2 py-1 rounded mb-2" autocomplete="off">
                     <!-- 新增 detail 地址输入框 -->
-                    <input type="text" id="customApiDetail" placeholder="detail地址（可选）" class="w-full bg-fill border border-separator text-white px-2 py-1 rounded mb-2" autocomplete="off">
+                    <input type="text" id="customApiDetail" placeholder="detail地址（可选）" class="w-full bg-fill border border-separator text-ink px-2 py-1 rounded mb-2" autocomplete="off">
                     <!-- 添加成人内容切换 -->
                     <div class="flex items-center mb-2">
                         <input type="checkbox" id="customApiIsAdult" class="form-checkbox h-4 w-4 text-pink-500 bg-fill border border-separator">
@@ -122,7 +122,7 @@
                     </div>
                     <div class="flex space-x-2">
                         <button data-action="addCustomApi" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">添加</button>
-                        <button data-action="cancelAddCustomApi" class="bg-fill hover:bg-fill-hover text-white px-3 py-1 rounded text-xs">取消</button>
+                        <button data-action="cancelAddCustomApi" class="bg-fill hover:bg-fill-hover text-ink px-3 py-1 rounded text-xs">取消</button>
                     </div>
                 </div>
             </div>
@@ -202,7 +202,7 @@
                         <!-- 搜索输入 -->
                         <input type="text" 
                                id="searchInput" 
-                               class="flex-1 bg-surface border-y border-separator text-white px-6 py-0 focus:outline-none transition-colors" 
+                               class="flex-1 bg-surface border-y border-separator text-ink px-6 py-0 focus:outline-none transition-colors" 
                                placeholder="搜索你喜欢的视频..." 
                                autocomplete="off"
                                aria-label="视频搜索框"
@@ -246,7 +246,7 @@
                         <!-- 标题和刷新按钮一行 -->
                         <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                             <div class="flex items-center">
-                                <h2 id="douban-title" class="text-xl font-bold text-white mr-4 whitespace-nowrap">豆瓣热门</h2>
+                                <h2 id="douban-title" class="text-xl font-bold text-ink mr-4 whitespace-nowrap">豆瓣热门</h2>
                                 <!-- 添加电影/电视剧切换开关 -->
                                 <div class="flex items-center bg-fill rounded-full p-1">
                                     <button id="douban-movie-toggle" class="px-3 py-1 text-sm rounded-full whitespace-nowrap bg-pink-600 text-white">电影</button>
@@ -339,7 +339,7 @@
                 <p class="text-ink-soft mb-4">请输入密码继续访问</p>
                 <form id="passwordForm">
                     <input type="text" name="username" id="username" autocomplete="username" style="display:none" tabindex="-1" aria-hidden="true">
-                    <input type="password" id="passwordInput" class="w-full bg-surface border border-separator text-white px-4 py-3 rounded-lg focus:outline-none focus:border-white transition-colors" placeholder="密码..." autocomplete="new-password">
+                    <input type="password" id="passwordInput" class="w-full bg-surface border border-separator text-ink px-4 py-3 rounded-lg focus:outline-none focus:border-white transition-colors" placeholder="密码..." autocomplete="new-password">
                     <button id="passwordSubmitBtn" type="submit" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">提交</button>
                 </form>
                 <p id="passwordError" class="text-danger mt-2 hidden">密码错误，请重试</p>
@@ -382,7 +382,7 @@
     <div id="loading" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50">
         <div class="bg-surface p-8 rounded-lg border border-separator flex items-center space-x-4">
             <div class="w-8 h-8 border-4 border-separator border-t-transparent rounded-full animate-spin"></div>
-            <p class="text-white text-lg">加载中...</p>
+            <p class="text-ink text-lg">加载中...</p>
         </div>
     </div>
 

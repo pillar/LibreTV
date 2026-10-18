@@ -439,7 +439,7 @@ function renderDoubanCards(data, container) {
                 </div>
                 <div class="p-2 text-center bg-surface">
                     <button ${actionAttrs('fillAndSearchWithDouban', item.title)} 
-                            class="text-sm font-medium text-white truncate w-full hover:text-pink-400 transition"
+                            class="text-sm font-medium text-ink truncate w-full hover:text-pink-400 transition"
                             title="${safeTitle}">
                         ${safeTitle}
                     </button>

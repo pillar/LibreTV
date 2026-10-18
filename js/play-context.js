@@ -40,7 +40,7 @@ function openPlayer(params, context) {
             // 存储不可用时，播放页会重新获取详情
         }
     }
-    // 网页版的 /player.html 会被重定向为 /player
+    // 播放页地址可能是 /player.html 或 /player
     const onPlayer = /\/player(\.html)?$/.test(window.location.pathname);
     const back = onPlayer ? new URLSearchParams(window.location.search).get('back') || '' : window.location.href;
     window.location.href = buildPlayerUrl({ back, ...params });

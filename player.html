@@ -173,7 +173,7 @@
                 <p class="text-ink-soft mb-4">请输入密码继续访问</p>
                 <form id="passwordForm">
                     <input type="text" name="username" id="username" autocomplete="username" style="display:none" tabindex="-1" aria-hidden="true">
-                    <input type="password" id="passwordInput" class="w-full bg-surface border border-separator text-white px-4 py-3 rounded-lg focus:outline-none focus:border-white transition-colors" placeholder="密码..." autocomplete="new-password">
+                    <input type="password" id="passwordInput" class="w-full bg-surface border border-separator text-ink px-4 py-3 rounded-lg focus:outline-none focus:border-white transition-colors" placeholder="密码..." autocomplete="new-password">
                     <button id="passwordSubmitBtn" type="submit" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">提交</button>
                 </form>
                 <p id="passwordError" class="text-danger mt-2 hidden">密码错误，请重试</p>
@@ -251,7 +251,7 @@
                     </button>
                     
                     <!-- 复制链接按钮 -->
-                    <button title="复制播放链接" data-action="copyLinks" class="px-2 py-1 bg-fill hover:bg-fill-hover border border-separator text-white rounded-lg transition">
+                    <button title="复制播放链接" data-action="copyLinks" class="px-2 py-1 bg-fill hover:bg-fill-hover border border-separator text-ink rounded-lg transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 012-2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                         </svg>
@@ -259,7 +259,7 @@
                     
                     <!-- 锁定控制按钮 - 始终显示在最右侧 -->
                     <button id="lockToggle" data-action="toggleControlsLock" title="锁定控制" 
-                            class="px-2 py-1 bg-fill hover:bg-fill-hover border border-separator text-white rounded-lg transition flex-shrink-0">
+                            class="px-2 py-1 bg-fill hover:bg-fill-hover border border-separator text-ink rounded-lg transition flex-shrink-0">
                         <svg id="lockIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <!-- 默认状态：未锁图标 -->
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -333,7 +333,7 @@
     <div id="loading" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[10001]">
         <div class="bg-surface p-8 rounded-lg border border-separator flex items-center space-x-4">
             <div class="w-8 h-8 border-4 border-separator border-t-transparent rounded-full animate-spin"></div>
-            <p class="text-white text-lg">加载中...</p>
+            <p class="text-ink text-lg">加载中...</p>
         </div>
     </div>
 

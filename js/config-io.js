@@ -23,12 +23,12 @@ async function importConfigFromUrl() {
             
             <div class="mb-4">
                 <input type="text" id="configUrl" placeholder="输入配置文件URL" 
-                       class="w-full px-3 py-2 bg-fill border border-separator rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                       class="w-full px-3 py-2 bg-fill border border-separator rounded-lg text-ink focus:outline-none focus:ring-1 focus:ring-blue-500">
             </div>
             
             <div class="flex justify-end space-x-2">
                 <button id="confirmUrlImport" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">导入</button>
-                <button id="cancelUrlImport" class="bg-fill hover:bg-fill-hover text-white px-4 py-2 rounded">取消</button>
+                <button id="cancelUrlImport" class="bg-fill hover:bg-fill-hover text-ink px-4 py-2 rounded">取消</button>
             </div>
         </div>`;
 

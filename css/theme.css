@@ -95,26 +95,6 @@ body.player-page {
     to { opacity: 1; transform: none; }
 }
 
-/* ---------- 文字颜色：原页面按深色界面写死的白/灰文字改为浅色界面的系统文字色 ---------- */
-body.text-white,
-body .text-white {
-    color: var(--ink);
-}
-
-/* 深色或彩色底上的文字保持白色 */
-body .bg-black\/70,
-body .bg-black\/70 .text-white,
-body .bg-pink-600,
-body .bg-blue-600,
-body .bg-red-500,
-body .bg-green-500,
-body #toast,
-body #toast p,
-body #playerContainer .text-white,
-body #player {
-    color: #fff;
-}
-
 /* ---------- 顶部导航栏 ---------- */
 .tv-nav {
     position: sticky;
@@ -990,6 +970,7 @@ body .player-placeholder {
     border-radius: var(--radius-lg) !important;
     overflow: hidden;
     background-color: #000 !important;
+    color: #fff;
 }
 
 body #resourceInfoBarContainer {

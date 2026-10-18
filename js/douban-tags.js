@@ -22,12 +22,12 @@ function showTagManageModal() {
         <div class="bg-surface-2 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
             <button id="closeTagModal" class="absolute top-4 right-4 text-ink-2 hover:text-ink text-xl">&times;</button>
             
-            <h3 class="text-xl font-bold text-white mb-4">标签管理 (${isMovie ? '电影' : '电视剧'})</h3>
+            <h3 class="text-xl font-bold text-ink mb-4">标签管理 (${isMovie ? '电影' : '电视剧'})</h3>
             
             <div class="mb-4">
                 <div class="flex justify-between items-center mb-2">
                     <h4 class="text-lg font-medium text-ink-soft">标签列表</h4>
-                    <button id="resetTagsBtn" class="text-xs px-2 py-1 bg-fill hover:bg-fill-hover text-white rounded">
+                    <button id="resetTagsBtn" class="text-xs px-2 py-1 bg-fill hover:bg-fill-hover text-ink rounded">
                         恢复默认标签
                     </button>
                 </div>
@@ -54,7 +54,7 @@ function showTagManageModal() {
                 <h4 class="text-lg font-medium text-ink-soft mb-3">添加新标签</h4>
                 <form id="addTagForm" class="flex items-center">
                     <input type="text" id="newTagInput" placeholder="输入标签名称..." 
-                           class="flex-1 bg-fill text-white border border-separator rounded px-3 py-2 focus:outline-none focus:border-pink-500">
+                           class="flex-1 bg-fill text-ink border border-separator rounded px-3 py-2 focus:outline-none focus:border-pink-500">
                     <button type="submit" class="ml-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded">添加</button>
                 </form>
                 <p class="text-xs text-ink-3 mt-2">提示：标签名称不能为空，不能重复，不能包含特殊字符</p>

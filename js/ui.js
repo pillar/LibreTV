@@ -329,7 +329,7 @@ function clearLocalStorage() {
                 <div class="text-sm font-medium text-ink-soft">确定要清除页面缓存吗？</div>
                 <div class="text-sm font-medium text-ink-soft mb-4">此功能会删除你的观看记录、自定义 API 接口和 Cookie，<scan class="text-danger font-bold">此操作不可恢复！</scan></div>
                 <div class="flex justify-end space-x-2">
-                    <button id="confirmBoxModal" class="ml-2 bg-fill hover:bg-fill-hover text-white px-4 py-1 rounded">确定</button>
+                    <button id="confirmBoxModal" class="ml-2 bg-fill hover:bg-fill-hover text-ink px-4 py-1 rounded">确定</button>
                     <button id="cancelBoxModal" class="ml-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-1 rounded">取消</button>
                 </div>
             </div>
@@ -361,7 +361,7 @@ function clearLocalStorage() {
             <div class="bg-surface-2 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
                 <button id="closeBoxModal" class="absolute top-4 right-4 text-ink-2 hover:text-ink text-xl">&times;</button>
 
-                <h3 class="text-xl font-bold text-white mb-4">提示</h3>
+                <h3 class="text-xl font-bold text-ink mb-4">提示</h3>
 
                 <div class="mb-4">
                     <div class="text-sm font-medium text-ink-soft mb-4">页面缓存和Cookie已清除，<span id="countdown">3</span> 秒后自动刷新本页面。</div>
@@ -422,7 +422,7 @@ function showImportBox(fun) {
                         </svg>
                     </div>
                     <div class="grid gap-2">
-                        <h4 class="text-center text-white-900 text-sm font-medium leading-snug">将配置文件拖到此处，或手动选择文件</h4>
+                        <h4 class="text-center text-sm font-medium leading-snug">将配置文件拖到此处，或手动选择文件</h4>
                     <div class="flex items-center justify-center gap-2">
                         <label>
                             <input type="file" id="ChooseFile" hidden />

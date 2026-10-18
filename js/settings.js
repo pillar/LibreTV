@@ -96,7 +96,7 @@ function renderCustomAPIsList() {
     customAPIs.forEach((api, index) => {
         const apiItem = document.createElement('div');
         apiItem.className = 'flex items-center justify-between p-1 mb-1 bg-fill rounded';
-        const textColorClass = api.isAdult ? 'text-pink-400' : 'text-white';
+        const textColorClass = api.isAdult ? 'text-pink-400' : 'text-ink';
         const adultTag = api.isAdult ? '<span class="text-xs text-pink-400 mr-1">(18+)</span>' : '';
         // 新增 detail 地址显示
         const detailLine = api.detail ? `<div class="text-xs text-ink-2 truncate">detail: ${escapeHtml(api.detail)}</div>` : '';
@@ -142,7 +142,7 @@ function editCustomApi(index) {
         const buttonContainer = form.querySelector('div:last-child');
         buttonContainer.innerHTML = `
             <button ${actionAttrs('updateCustomApi', index)} class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">更新</button>
-            <button data-action="cancelEditCustomApi" class="bg-fill hover:bg-fill-hover text-white px-3 py-1 rounded text-xs">取消</button>
+            <button data-action="cancelEditCustomApi" class="bg-fill hover:bg-fill-hover text-ink px-3 py-1 rounded text-xs">取消</button>
         `;
     }
 }
@@ -203,7 +203,7 @@ function restoreAddCustomApiButtons() {
     const buttonContainer = form.querySelector('div:last-child');
     buttonContainer.innerHTML = `
         <button data-action="addCustomApi" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">添加</button>
-        <button data-action="cancelAddCustomApi" class="bg-fill hover:bg-fill-hover text-white px-3 py-1 rounded text-xs">取消</button>
+        <button data-action="cancelAddCustomApi" class="bg-fill hover:bg-fill-hover text-ink px-3 py-1 rounded text-xs">取消</button>
     `;
 }
 

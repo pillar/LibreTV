@@ -143,7 +143,7 @@ function renderShortDramaCards(groups, container) {
                     <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-sm">${escapeHtml(badge)}</div>
                 </div>
                 <div class="p-2 text-center bg-surface">
-                    <div class="text-sm font-medium text-white truncate" title="${safeTitle}">${safeTitle}</div>
+                    <div class="text-sm font-medium text-ink truncate" title="${safeTitle}">${safeTitle}</div>
                 </div>
             </div>
         `;

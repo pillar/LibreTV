@@ -27,6 +27,7 @@ coverage
 # 端到端测试产物
 playwright-report/
 test-results/
+visual-results/
 
 # Wrangler 本地状态
 .wrangler/

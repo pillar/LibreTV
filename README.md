@@ -71,6 +71,8 @@ npm test
 
 推送到 GitHub 后，`.github/workflows/test.yml` 会自动运行代码检查与全部测试。
 
+修改样式后用外观对比确认没有意外变化：`npm run visual`（与上次提交比较）或 `npm run visual -- <git 版本>`。它在临时 worktree 中构建指定版本截图作为基准，再截取当前代码的同一批界面（桌面与手机各 21 个，见 `tests/visual/visual.spec.js`）逐像素比较，不一致时差异图在 `visual-results/diff/`。不在 `npm test` 和 CI 中运行。
+
 ## 📱 iOS / Android 客户端
 
 `mobile/` 目录是基于 Capacitor 的原生 App 工程（包名 `app.playany.tv`），内置全部前端页面，数据源请求走原生 HTTP，不需要自建服务器。构建方法和限制见 [mobile/README.md](mobile/README.md)。

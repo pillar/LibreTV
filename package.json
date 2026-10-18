@@ -10,7 +10,8 @@
     "start": "node server.mjs",
     "build": "node scripts/build.mjs",
     "test": "npm run lint && npm run build && playwright test",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "visual": "node scripts/visual-diff.mjs"
   },
   "dependencies": {
     "dotenv": "^16.5.0",

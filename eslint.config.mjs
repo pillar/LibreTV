@@ -29,7 +29,7 @@ const projectGlobals = Object.fromEntries(
 );
 
 export default [
-    { ignores: ['dist/', 'libs/', 'mobile/', 'node_modules/', 'test-results/', 'playwright-report/', '.wrangler/'] },
+    { ignores: ['dist/', 'libs/', 'mobile/', 'node_modules/', 'test-results/', 'visual-results/', 'playwright-report/', '.wrangler/'] },
     js.configs.recommended,
     { rules: { 'no-empty': ['error', { allowEmptyCatch: true }] } },
     {

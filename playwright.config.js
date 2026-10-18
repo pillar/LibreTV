@@ -29,7 +29,7 @@ export default defineConfig({
         {
             // 前端功能与服务端接口：Node 版
             name: 'node',
-            testIgnore: /rate-limit\.spec/,
+            testIgnore: [/rate-limit\.spec/, /visual\//],
             use: { baseURL: `http://localhost:${NODE_PORT}` }
         },
         {

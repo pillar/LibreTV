@@ -52,6 +52,8 @@ let currentVideoUrl = ''; // 记录当前实际的视频URL
 let progressUrl = null;
 // 正在通过 art.switchUrl 切换剧集（ArtPlayer 会在加载后把进度归零，需在切换完成后再恢复续播）
 let switchingEpisode = false;
+// 重建播放器时暂时退出网页全屏，期间不改变 App 的横屏与系统栏
+let keepImmersive = false;
 const isWebkit = (typeof window.webkitConvertPointFromNodeToPage === 'function')
 Artplayer.FULLSCREEN_WEB_IN_BODY = true;
 
@@ -201,8 +203,16 @@ function initPlayer(videoUrl) {
         return
     }
 
-    // 销毁旧实例
+    // 销毁旧实例。网页全屏时 ArtPlayer 把播放器移到了 body 下（FULLSCREEN_WEB_IN_BODY），destroy 只清理原容器，
+    // 旧播放器会留在全屏层盖住新播放器（停在上一集结尾并显示加载失败），所以先退出网页全屏、创建新播放器后再恢复
+    let restoreFullscreenWeb = false;
     if (art) {
+        restoreFullscreenWeb = art.fullscreenWeb;
+        if (restoreFullscreenWeb) {
+            keepImmersive = true;
+            art.fullscreenWeb = false;
+            keepImmersive = false;
+        }
         art.destroy();
         art = null;
     }
@@ -385,8 +395,10 @@ function initPlayer(videoUrl) {
     // 网页内全屏：App 内同时横屏并隐藏系统栏。
     // ArtPlayer 只发出 fullscreenWeb 事件，参数表示进入（true）或退出（false）；控制栏的自动隐藏由 ArtPlayer 自身处理。
     art.on('fullscreenWeb', state => {
-        if (window.NativeApp) window.NativeApp.setImmersive(state);
+        if (window.NativeApp && !keepImmersive) window.NativeApp.setImmersive(state);
     });
+    // 立即恢复（不等视频加载成功），加载失败时错误提示也显示在全屏层中
+    if (restoreFullscreenWeb) art.fullscreenWeb = true;
 
     // 播放器加载完成后初始隐藏工具栏
     art.on('ready', () => {

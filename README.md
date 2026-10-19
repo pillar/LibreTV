@@ -65,7 +65,7 @@ npm run dev            # 构建 dist/ 并启动 Node 版服务，修改服务端
 代码检查与端到端测试（先运行 ESLint 并构建，再同时启动 Node 版与本地 Worker，数据源接口使用模拟数据）：
 
 ```bash
-npx playwright install chromium   # 首次运行前安装浏览器（本地默认使用已安装的 Chrome）
+npx playwright install chromium webkit   # 首次运行前安装浏览器（本地默认使用已安装的 Chrome；WebKit 用于 iPhone 专有的播放页测试）
 npm test
 ```
 

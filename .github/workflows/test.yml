@@ -23,7 +23,7 @@ jobs:
         run: npx wrangler deploy --dry-run --outdir .wrangler/dry-run
 
       - name: 安装浏览器
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       # 先运行 ESLint（也包含语法检查），再构建 dist/，同时测试 Node 版 server.mjs 与本地 Worker（wrangler dev）
       - name: 代码检查与端到端测试

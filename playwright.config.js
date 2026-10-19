@@ -7,6 +7,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const NODE_PORT = 8099;
+// 本地使用已安装的 Chrome；CI 中使用 Playwright 自带的 Chromium
+const CHANNEL = process.env.CI ? undefined : 'chrome';
 const WORKER_PORT = 8787;
 const PASSWORDS = { PASSWORD: 'test-pass', ADMINPASSWORD: 'admin-pass' };
 // 测试在一分钟内会多次登录，放宽登录限流：Node 版运行全部测试，几乎不限；Worker 只运行接口测试，
@@ -21,29 +23,33 @@ export default defineConfig({
     retries: process.env.CI ? 1 : 0,
     reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
     use: {
-        // 本地使用已安装的 Chrome；CI 中使用 Playwright 自带的 Chromium
-        channel: process.env.CI ? undefined : 'chrome',
         trace: 'retain-on-failure'
     },
     projects: [
         {
             // 前端功能与服务端接口：Node 版
             name: 'node',
-            testIgnore: [/rate-limit\.spec/, /visual\//],
-            use: { baseURL: `http://localhost:${NODE_PORT}` }
+            testIgnore: [/rate-limit\.spec/, /visual\//, /webkit\.spec/],
+            use: { channel: CHANNEL, baseURL: `http://localhost:${NODE_PORT}` }
+        },
+        {
+            // iPhone（WebKit）专有的代码路径，例如切换剧集时重建播放器
+            name: 'webkit',
+            testMatch: /webkit\.spec/,
+            use: { browserName: 'webkit', baseURL: `http://localhost:${NODE_PORT}` }
         },
         {
             // 服务端接口：Cloudflare Worker（前端测试与 Node 版相同，不重复运行）
             name: 'worker',
             testMatch: /(auth|server)\.spec/,
-            use: { baseURL: `http://localhost:${WORKER_PORT}` }
+            use: { channel: CHANNEL, baseURL: `http://localhost:${WORKER_PORT}` }
         },
         {
             // 登录限流会让同一 IP 一分钟内无法再登录，放在 Worker 其他测试之后单独运行
             name: 'worker-rate-limit',
             testMatch: /rate-limit\.spec/,
             dependencies: ['worker'],
-            use: { baseURL: `http://localhost:${WORKER_PORT}` }
+            use: { channel: CHANNEL, baseURL: `http://localhost:${WORKER_PORT}` }
         }
     ],
     webServer: [

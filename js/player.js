@@ -602,7 +602,7 @@ function renderEpisodes() {
         html += `
             <button id="episode-${realIndex}" 
                     ${actionAttrs('playEpisode', realIndex)} 
-                    class="px-4 py-2 ${isActive ? 'episode-active' : '!bg-fill hover:!bg-fill-hover hover:!shadow-none text-ink'} !border ${isActive ? '!border-transparent' : '!border-transparent'} rounded-lg transition-colors text-center episode-btn">
+                    class="px-4 py-2 ${isActive ? 'episode-active' : 'bg-fill! hover:bg-fill-hover! hover:shadow-none! text-ink'} rounded-lg transition-colors text-center episode-btn">
                 ${realIndex + 1}
             </button>
         `;

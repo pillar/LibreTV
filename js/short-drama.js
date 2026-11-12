@@ -135,12 +135,12 @@ function renderShortDramaCards(groups, container) {
         return `
             <div class="douban-card short-drama-card bg-surface rounded-lg overflow-hidden flex flex-col cursor-pointer shadow-md"
                  ${actionAttrs('openShortDrama', index)}>
-                <div class="douban-cover-wrap relative w-full aspect-[2/3] overflow-hidden">
+                <div class="douban-cover-wrap relative w-full aspect-2/3 overflow-hidden">
                     ${cover ? `<img src="${escapeHtml(cover)}" alt="${safeTitle}" class="douban-cover w-full h-full object-cover"
                         loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}
-                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60"></div>
-                    ${item.vod_remarks ? `<div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-sm">${escapeHtml(item.vod_remarks)}</div>` : ''}
-                    <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-sm">${escapeHtml(badge)}</div>
+                    <div class="absolute inset-0 bg-linear-to-t/srgb from-black to-transparent opacity-60"></div>
+                    ${item.vod_remarks ? `<div class="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-xs">${escapeHtml(item.vod_remarks)}</div>` : ''}
+                    <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-xs">${escapeHtml(badge)}</div>
                 </div>
                 <div class="p-2 text-center bg-surface">
                     <div class="text-sm font-medium text-ink truncate" title="${safeTitle}">${safeTitle}</div>

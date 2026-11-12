@@ -46,7 +46,7 @@ function showToast(message, type = 'error') {
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'toast';
-        toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 z-50 opacity-0';
+        toast.className = 'fixed top-4 left-1/2 [transform:translateX(-50%)] px-6 py-3 rounded-lg shadow-lg transition-all duration-300 z-50 opacity-0';
         toast.style = 'z-index: 2147483647'
         const toastMessage = document.createElement('p');
         toastMessage.id = 'toastMessage';
@@ -84,7 +84,7 @@ function showNextToast() {
     };
 
     const bgColor = bgColors[type] || bgColors.error;
-    toast.className = `fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 ${bgColor} text-white z-50`;
+    toast.className = `fixed top-4 left-1/2 [transform:translateX(-50%)] px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${bgColor} text-white z-50`;
     toastMessage.textContent = message;
 
     // 显示提示
@@ -316,7 +316,7 @@ function clearLocalStorage() {
     // 创建模态框元素
     modal = document.createElement('div');
     modal.id = 'messageBoxModal';
-    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40';
+    modal.className = 'fixed inset-0 bg-black/75 flex items-center justify-center z-40';
 
     modal.innerHTML = `
         <div class="bg-surface-2 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
@@ -327,9 +327,9 @@ function clearLocalStorage() {
             <div class="mb-0">
                 <div class="text-sm font-medium text-ink-soft">确定要清除页面缓存吗？</div>
                 <div class="text-sm font-medium text-ink-soft mb-4">此功能会删除你的观看记录、自定义 API 接口和 Cookie，<scan class="text-danger font-bold">此操作不可恢复！</scan></div>
-                <div class="flex justify-end space-x-2">
-                    <button id="confirmBoxModal" class="ml-2 bg-fill hover:bg-fill-hover text-ink px-4 py-1 rounded">确定</button>
-                    <button id="cancelBoxModal" class="ml-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-1 rounded">取消</button>
+                <div class="flex justify-end">
+                    <button id="confirmBoxModal" class="ml-2 bg-fill hover:bg-fill-hover text-ink px-4 py-1 rounded-sm">确定</button>
+                    <button id="cancelBoxModal" class="ml-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-1 rounded-sm">取消</button>
                 </div>
             </div>
         </div>`;
@@ -405,7 +405,7 @@ function showImportBox(fun) {
     // 创建模态框元素
     modal = document.createElement('div');
     modal.id = 'showImportBoxModal';
-    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40';
+    modal.className = 'fixed inset-0 bg-black/75 flex items-center justify-center z-40';
 
     modal.innerHTML = `
         <div class="bg-surface-2 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
@@ -425,9 +425,9 @@ function showImportBox(fun) {
                     <div class="flex items-center justify-center gap-2">
                         <label>
                             <input type="file" id="ChooseFile" hidden />
-                            <div class="flex w-28 h-9 px-2 flex-col bg-pink-600 rounded-full shadow text-white text-xs font-semibold leading-4 items-center justify-center cursor-pointer focus:outline-none">选择文件</div>
+                            <div class="flex w-28 h-9 px-2 flex-col bg-pink-600 rounded-full shadow-sm text-white text-xs font-semibold leading-4 items-center justify-center cursor-pointer focus:outline-hidden">选择文件</div>
                         </label>
-                        <button data-action="importConfigFromUrl" class="flex w-28 h-9 px-2 flex-col bg-blue-600 rounded-full shadow text-white text-xs font-semibold leading-4 items-center justify-center cursor-pointer focus:outline-none">从URL导入</button>
+                        <button data-action="importConfigFromUrl" class="flex w-28 h-9 px-2 flex-col bg-blue-600 rounded-full shadow-sm text-white text-xs font-semibold leading-4 items-center justify-center cursor-pointer focus:outline-hidden">从URL导入</button>
                     </div>
                     </div>
                 </div>

@@ -215,25 +215,25 @@ function renderResultCard(item, resultIndex) {
     const hasCover = Boolean(coverUrl);
 
     return `
-        <div class="card-hover bg-surface rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-[1.02] h-full shadow-sm hover:shadow-md"
+        <div class="card-hover bg-surface rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-[1.02] h-full shadow-xs hover:shadow-md"
              ${actionAttrs('openSearchResult', resultIndex)}>
             <div class="flex h-full">
                 ${hasCover ? `
-                <div class="relative flex-shrink-0 search-card-img-container">
+                <div class="relative shrink-0 search-card-img-container">
                     <img src="${escapeHtml(coverUrl)}" alt="${safeName}"
                          class="h-full w-full object-cover transition-transform hover:scale-110"
                          data-fallback="placeholder"
                          loading="lazy">
-                    <div class="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent"></div>
+                    <div class="absolute inset-0 bg-linear-to-r/srgb from-black/30 to-transparent"></div>
                 </div>` : ''}
 
-                <div class="p-2 flex flex-col flex-grow">
-                    <div class="flex-grow">
-                        <h3 class="font-semibold mb-2 break-words line-clamp-2 ${hasCover ? '' : 'text-center'}" title="${safeName}">${safeName}</h3>
+                <div class="p-2 flex flex-col grow">
+                    <div class="grow">
+                        <h3 class="font-semibold mb-2 wrap-break-word line-clamp-2 ${hasCover ? '' : 'text-center'}" title="${safeName}">${safeName}</h3>
 
                         <div class="flex flex-wrap ${hasCover ? '' : 'justify-center'} gap-1 mb-2">
-                            ${item.type_name ? `<span class="text-xs py-0.5 px-1.5 rounded bg-opacity-20 bg-blue-500 text-blue-300">${escapeHtml(item.type_name)}</span>` : ''}
-                            ${item.vod_year ? `<span class="text-xs py-0.5 px-1.5 rounded bg-opacity-20 bg-purple-500 text-purple-300">${escapeHtml(item.vod_year)}</span>` : ''}
+                            ${item.type_name ? `<span class="text-xs py-0.5 px-1.5 rounded-sm bg-blue-500/20 text-blue-300">${escapeHtml(item.type_name)}</span>` : ''}
+                            ${item.vod_year ? `<span class="text-xs py-0.5 px-1.5 rounded-sm bg-purple-500/20 text-purple-300">${escapeHtml(item.vod_year)}</span>` : ''}
                         </div>
                         <p class="text-ink-2 line-clamp-2 overflow-hidden ${hasCover ? '' : 'text-center'} mb-2">
                             ${escapeHtml(item.vod_remarks || '暂无介绍')}
@@ -446,7 +446,7 @@ async function showDetails(id, vod_name, sourceCode) {
             ` <span class="text-sm font-normal text-ink-2">(${escapeHtml(data.videoInfo.source_name)})</span>` : '';
 
         // 不对标题进行截断处理，允许完整显示
-        modalTitle.innerHTML = `<span class="break-words">${escapeHtml(vod_name || '未知视频')}</span>${sourceName}`;
+        modalTitle.innerHTML = `<span class="wrap-break-word">${escapeHtml(vod_name || '未知视频')}</span>${sourceName}`;
         currentVideoTitle = vod_name || '未知视频';
 
         if (data.episodes && data.episodes.length > 0) {
@@ -492,7 +492,7 @@ async function showDetails(id, vod_name, sourceCode) {
                 <div class="flex flex-wrap items-center justify-between mb-4 gap-2">
                     <div class="flex items-center gap-2">
                         <button id="episodeOrderToggle" ${actionAttrs('toggleEpisodeOrder', sourceCode, id)} 
-                                class="px-3 py-1.5 bg-fill hover:bg-fill-hover border border-separator rounded text-sm transition-colors flex items-center gap-1">
+                                class="px-3 py-1.5 bg-fill hover:bg-fill-hover border border-separator rounded-sm text-sm transition-colors flex items-center gap-1">
                             <svg class="w-4 h-4 transform ${episodesReversed ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                             </svg>
@@ -500,7 +500,7 @@ async function showDetails(id, vod_name, sourceCode) {
                         </button>
                         <span class="text-ink-2 text-sm">共 ${data.episodes.length} 集</span>
                     </div>
-                    <button data-action="copyLinks" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors">
+                    <button data-action="copyLinks" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-sm text-sm transition-colors">
                         复制链接
                     </button>
                 </div>

@@ -95,7 +95,7 @@ function renderCustomAPIsList() {
     container.innerHTML = '';
     customAPIs.forEach((api, index) => {
         const apiItem = document.createElement('div');
-        apiItem.className = 'flex items-center justify-between p-1 mb-1 bg-fill rounded';
+        apiItem.className = 'flex items-center justify-between p-1 mb-1 bg-fill rounded-sm';
         const textColorClass = api.isAdult ? 'text-pink-400' : 'text-ink';
         const adultTag = api.isAdult ? '<span class="text-xs text-pink-400 mr-1">(18+)</span>' : '';
         // 新增 detail 地址显示
@@ -141,8 +141,8 @@ function editCustomApi(index) {
         form.classList.remove('hidden');
         const buttonContainer = form.querySelector('div:last-child');
         buttonContainer.innerHTML = `
-            <button ${actionAttrs('updateCustomApi', index)} class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">更新</button>
-            <button data-action="cancelEditCustomApi" class="bg-fill hover:bg-fill-hover text-ink px-3 py-1 rounded text-xs">取消</button>
+            <button ${actionAttrs('updateCustomApi', index)} class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-sm text-xs">更新</button>
+            <button data-action="cancelEditCustomApi" class="bg-fill hover:bg-fill-hover text-ink px-3 py-1 rounded-sm text-xs">取消</button>
         `;
     }
 }
@@ -202,8 +202,8 @@ function restoreAddCustomApiButtons() {
     const form = document.getElementById('addCustomApiForm');
     const buttonContainer = form.querySelector('div:last-child');
     buttonContainer.innerHTML = `
-        <button data-action="addCustomApi" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">添加</button>
-        <button data-action="cancelAddCustomApi" class="bg-fill hover:bg-fill-hover text-ink px-3 py-1 rounded text-xs">取消</button>
+        <button data-action="addCustomApi" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-sm text-xs">添加</button>
+        <button data-action="cancelAddCustomApi" class="bg-fill hover:bg-fill-hover text-ink px-3 py-1 rounded-sm text-xs">取消</button>
     `;
 }
 

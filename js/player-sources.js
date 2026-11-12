@@ -62,7 +62,7 @@ async function showSwitchResourceModal() {
     const modalTitle = document.getElementById('modalTitle');
     const modalContent = document.getElementById('modalContent');
 
-    modalTitle.innerHTML = `<span class="break-words">${escapeHtml(currentVideoTitle)}</span>`;
+    modalTitle.innerHTML = `<span class="wrap-break-word">${escapeHtml(currentVideoTitle)}</span>`;
     modalContent.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;grid-column:1/-1;">正在加载资源列表...</div>';
     modal.classList.remove('hidden');
 
@@ -122,7 +122,7 @@ async function showSwitchResourceModal() {
         html += `
             <div class="relative group ${isCurrentSource ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105 transition-transform'}" 
                  ${!isCurrentSource ? actionAttrs('switchToResource', sourceKey, result.vod_id) : ''}>
-                <div class="aspect-[2/3] rounded-lg overflow-hidden bg-surface-2">
+                <div class="aspect-2/3 rounded-lg overflow-hidden bg-surface-2">
                     <img src="${escapeHtml(safeHttpUrl(result.vod_pic))}" 
                          alt="${escapeHtml(result.vod_name)}"
                          class="w-full h-full object-cover"
@@ -134,7 +134,7 @@ async function showSwitchResourceModal() {
                 </div>
                 ${isCurrentSource ? `
                     <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="bg-black bg-opacity-50 rounded-lg px-2 py-0.5 text-xs text-white">
+                        <div class="bg-black/50 rounded-lg px-2 py-0.5 text-xs text-white">
                             当前播放
                         </div>
                     </div>

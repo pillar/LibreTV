@@ -164,7 +164,7 @@
     </header>
 
     <!-- 密码验证弹窗 -->
-    <div id="passwordModal" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[65] transition-opacity duration-300">
+    <div id="passwordModal" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-65 transition-opacity duration-300">
         <div class="bg-surface p-8 rounded-lg w-11/12 max-w-md border border-separator max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center mb-6 flex-none">
                 <h2 class="text-2xl font-bold gradient-text">访问验证</h2>
@@ -173,8 +173,8 @@
                 <p class="text-ink-soft mb-4">请输入密码继续访问</p>
                 <form id="passwordForm">
                     <input type="text" name="username" id="username" autocomplete="username" style="display:none" tabindex="-1" aria-hidden="true">
-                    <input type="password" id="passwordInput" class="w-full bg-surface border border-separator text-ink px-4 py-3 rounded-lg focus:outline-none focus:border-white transition-colors" placeholder="密码..." autocomplete="new-password">
-                    <button id="passwordSubmitBtn" type="submit" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">提交</button>
+                    <input type="password" id="passwordInput" class="w-full bg-surface border border-separator text-ink px-4 py-3 rounded-lg focus:outline-hidden focus:border-white transition-colors" placeholder="密码..." autocomplete="new-password">
+                    <button id="passwordSubmitBtn" type="submit" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-sm">提交</button>
                 </form>
                 <p id="passwordError" class="text-danger mt-2 hidden">密码错误，请重试</p>
             </div>
@@ -232,7 +232,7 @@
         <div class="player-container mb-2">
             <div class="flex flex-wrap justify-end items-center gap-2">
                 <!-- 自动连播开关 - 分组到左边 -->
-                <div class="flex items-center gap-1 flex-shrink-0 mr-auto">
+                <div class="flex items-center gap-1 shrink-0 mr-auto">
                     <span class="text-ink-2 text-sm whitespace-nowrap">自动连播</span>
                     <label class="switch">
                         <input type="checkbox" id="autoplayToggle">
@@ -243,7 +243,7 @@
                 <!-- 把各种功能按钮放在右侧 - 在小屏幕上各自占一行 -->
                 <div class="flex flex-wrap justify-end gap-2">
                     <!-- 倒序排列按钮 -->
-                    <button data-action="toggleEpisodeOrder" class="px-3 py-1 bg-fill hover:bg-fill-hover border border-separator rounded-lg transition-colors flex items-center space-x-1 flex-shrink-0">
+                    <button data-action="toggleEpisodeOrder" class="px-3 py-1 bg-fill hover:bg-fill-hover border border-separator rounded-lg transition-colors flex items-center space-x-1 shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" id="orderIcon" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd" />
                         </svg>
@@ -259,7 +259,7 @@
                     
                     <!-- 锁定控制按钮 - 始终显示在最右侧 -->
                     <button id="lockToggle" data-action="toggleControlsLock" title="锁定控制" 
-                            class="px-2 py-1 bg-fill hover:bg-fill-hover border border-separator text-ink rounded-lg transition flex-shrink-0">
+                            class="px-2 py-1 bg-fill hover:bg-fill-hover border border-separator text-ink rounded-lg transition shrink-0">
                         <svg id="lockIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <!-- 默认状态：未锁图标 -->
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -316,11 +316,11 @@
     </footer>
 
     <!-- 换源模态框 -->
-    <div id="modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center transition-opacity duration-300 z-[10000]">
+    <div id="modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center transition-opacity duration-300 z-10000">
         <div class="bg-surface p-8 rounded-lg w-11/12 max-w-4xl border border-separator max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center mb-6 flex-none">
-                <h2 id="modalTitle" class="text-2xl font-bold gradient-text break-words pr-4 max-w-[80%]"></h2>
-                <button data-action="closeModal" class="text-ink-2 hover:text-ink text-2xl transition-colors flex-shrink-0">&times;</button>
+                <h2 id="modalTitle" class="text-2xl font-bold gradient-text wrap-break-word pr-4 max-w-[80%]"></h2>
+                <button data-action="closeModal" class="text-ink-2 hover:text-ink text-2xl transition-colors shrink-0">&times;</button>
             </div>
             <div id="modalContent" class="overflow-auto flex-1 min-h-0">
                 <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
@@ -330,7 +330,7 @@
     </div>
 
     <!-- 添加 loading 提示框 -->
-    <div id="loading" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[10001]">
+    <div id="loading" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-10001">
         <div class="bg-surface p-8 rounded-lg border border-separator flex items-center space-x-4">
             <div class="w-8 h-8 border-4 border-separator border-t-transparent rounded-full animate-spin"></div>
             <p class="text-ink text-lg">加载中...</p>

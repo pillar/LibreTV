@@ -13,7 +13,7 @@ async function importConfigFromUrl() {
 
     modal = document.createElement('div');
     modal.id = 'importUrlModal';
-    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40';
+    modal.className = 'fixed inset-0 bg-black/75 flex items-center justify-center z-40';
 
     modal.innerHTML = `
         <div class="bg-surface-2 rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto relative">
@@ -23,12 +23,12 @@ async function importConfigFromUrl() {
             
             <div class="mb-4">
                 <input type="text" id="configUrl" placeholder="输入配置文件URL" 
-                       class="w-full px-3 py-2 bg-fill border border-separator rounded-lg text-ink focus:outline-none focus:ring-1 focus:ring-blue-500">
+                       class="w-full px-3 py-2 bg-fill border border-separator rounded-lg text-ink focus:outline-hidden focus:ring-1 focus:ring-blue-500">
             </div>
             
             <div class="flex justify-end space-x-2">
-                <button id="confirmUrlImport" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">导入</button>
-                <button id="cancelUrlImport" class="bg-fill hover:bg-fill-hover text-ink px-4 py-2 rounded">取消</button>
+                <button id="confirmUrlImport" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-sm">导入</button>
+                <button id="cancelUrlImport" class="bg-fill hover:bg-fill-hover text-ink px-4 py-2 rounded-sm">取消</button>
             </div>
         </div>`;
 

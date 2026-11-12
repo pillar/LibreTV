@@ -278,7 +278,7 @@ body .gradient-text {
 /* 强调按钮：系统蓝 */
 body .bg-pink-600,
 body .bg-blue-600,
-body .bg-gradient-to-r.from-indigo-500 {
+body .bg-linear-to-r\/srgb.from-indigo-500 {
     background: var(--blue);
     color: #fff;
     border: 0;
@@ -290,7 +290,7 @@ body .bg-gradient-to-r.from-indigo-500 {
 body .bg-pink-600:hover,
 body .hover\:bg-pink-700:hover,
 body .hover\:bg-blue-700:hover,
-body .bg-gradient-to-r.from-indigo-500:hover {
+body .bg-linear-to-r\/srgb.from-indigo-500:hover {
     background: var(--blue-hover);
     color: #fff;
     box-shadow: none;
@@ -338,7 +338,7 @@ body .settings-panel label.border-b {
     border-color: var(--separator);
 }
 
-body .settings-panel button.rounded,
+body .settings-panel button.rounded-sm,
 body #customApisList button {
     border-radius: 999px;
     padding-left: 0.7rem;
@@ -528,14 +528,14 @@ body .search-card-img-container {
     background: var(--surface-2);
 }
 
-body .card-hover .bg-blue-500.bg-opacity-20 {
+body .card-hover .bg-blue-500\/20 {
     background: rgba(0, 122, 255, 0.12);
     color: var(--blue);
     border-radius: 4px;
     padding: 0.05rem 0.4rem;
 }
 
-body .card-hover .bg-purple-500.bg-opacity-20 {
+body .card-hover .bg-purple-500\/20 {
     background: rgba(175, 82, 222, 0.12);
     color: #af52de;
     border-radius: 4px;
@@ -576,7 +576,7 @@ body .douban-card img:hover {
     transform: none;
 }
 
-body .douban-card .bg-gradient-to-t {
+body .douban-card .bg-linear-to-t\/srgb {
     opacity: 0.3;
 }
 

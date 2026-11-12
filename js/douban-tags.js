@@ -11,7 +11,7 @@ function showTagManageModal() {
     // 创建模态框元素
     modal = document.createElement('div');
     modal.id = 'tagManageModal';
-    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-40';
+    modal.className = 'fixed inset-0 bg-black/75 flex items-center justify-center z-40';
     
     // 当前使用的标签类型和默认标签
     const isMovie = doubanMovieTvCurrentSwitch === 'movie';
@@ -27,7 +27,7 @@ function showTagManageModal() {
             <div class="mb-4">
                 <div class="flex justify-between items-center mb-2">
                     <h4 class="text-lg font-medium text-ink-soft">标签列表</h4>
-                    <button id="resetTagsBtn" class="text-xs px-2 py-1 bg-fill hover:bg-fill-hover text-ink rounded">
+                    <button id="resetTagsBtn" class="text-xs px-2 py-1 bg-fill hover:bg-fill-hover text-ink rounded-sm">
                         恢复默认标签
                     </button>
                 </div>
@@ -36,7 +36,7 @@ function showTagManageModal() {
                         // "热门"标签不能删除
                         const canDelete = tag !== '热门';
                         return `
-                            <div class="bg-surface-2 text-ink-soft py-1.5 px-3 rounded text-sm font-medium flex justify-between items-center group">
+                            <div class="bg-surface-2 text-ink-soft py-1.5 px-3 rounded-sm text-sm font-medium flex justify-between items-center group">
                                 <span>${tag}</span>
                                 ${canDelete ? 
                                     `<button class="delete-tag-btn text-ink-3 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" 
@@ -54,8 +54,8 @@ function showTagManageModal() {
                 <h4 class="text-lg font-medium text-ink-soft mb-3">添加新标签</h4>
                 <form id="addTagForm" class="flex items-center">
                     <input type="text" id="newTagInput" placeholder="输入标签名称..." 
-                           class="flex-1 bg-fill text-ink border border-separator rounded px-3 py-2 focus:outline-none focus:border-pink-500">
-                    <button type="submit" class="ml-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded">添加</button>
+                           class="flex-1 bg-fill text-ink border border-separator rounded-sm px-3 py-2 focus:outline-hidden focus:border-pink-500">
+                    <button type="submit" class="ml-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-sm">添加</button>
                 </form>
                 <p class="text-xs text-ink-3 mt-2">提示：标签名称不能为空，不能重复，不能包含特殊字符</p>
             </div>

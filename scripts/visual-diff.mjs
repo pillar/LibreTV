@@ -3,7 +3,7 @@
 // 两次截图在同一台机器、同一个浏览器上完成，不受系统字体差异影响；基准截图不提交到仓库。
 // 不一致时差异图（预期 / 实际 / 差异）在 visual-results/diff/ 中。
 import { execFileSync, spawn } from 'node:child_process';
-import { mkdtempSync, rmSync, symlinkSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -58,7 +58,10 @@ rmSync(out, { recursive: true, force: true });
 run('git', ['worktree', 'add', '--detach', base, ref]);
 let failed;
 try {
-    symlinkSync(join(root, 'node_modules'), join(base, 'node_modules'));
+    // 依赖相同时直接共用当前的 node_modules；不同（例如对比依赖升级）时按基准版本自己的锁文件安装，否则基准会用新版本的工具构建
+    const lockfile = dir => readFileSync(join(dir, 'package-lock.json'), 'utf8');
+    if (lockfile(base) === lockfile(root)) symlinkSync(join(root, 'node_modules'), join(base, 'node_modules'));
+    else run('npm', ['ci', '--no-audit', '--no-fund'], { cwd: base });
     run('node', ['scripts/build.mjs'], { cwd: base });
     let stable = false;
     for (let attempt = 1; attempt <= BASELINE_ATTEMPTS && !stable; attempt++) {

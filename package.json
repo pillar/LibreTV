@@ -14,7 +14,7 @@
     "visual": "node scripts/visual-diff.mjs"
   },
   "dependencies": {
-    "dotenv": "^16.6.1",
+    "dotenv": "^18.0.10",
     "undici": "7.30.1"
   },
   "devDependencies": {

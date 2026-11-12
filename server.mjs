@@ -13,7 +13,7 @@ import { handleRequest } from './lib/handler.mjs';
 import { isPrivateAddress } from './lib/target-guard.mjs';
 import { createRateLimiter } from './lib/rate-limit.mjs';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'dist');
 const PORT = Number(process.env.PORT || 8080);

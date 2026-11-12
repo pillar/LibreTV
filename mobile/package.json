@@ -12,15 +12,15 @@
     "open:android": "cap open android"
   },
   "dependencies": {
-    "@capacitor/android": "8.5.3",
+    "@capacitor/android": "8.6.0",
     "@capacitor/app": "8.1.2",
-    "@capacitor/core": "8.5.3",
+    "@capacitor/core": "8.6.0",
     "@capacitor/file-transfer": "2.0.6",
     "@capacitor/filesystem": "8.1.5",
-    "@capacitor/ios": "8.5.3",
+    "@capacitor/ios": "8.6.0",
     "@capacitor/screen-orientation": "8.0.2"
   },
   "devDependencies": {
-    "@capacitor/cli": "8.5.3"
+    "@capacitor/cli": "8.6.0"
   }
 }

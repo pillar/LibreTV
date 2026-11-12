@@ -143,7 +143,7 @@
         await Filesystem.mkdir({ directory: DIRECTORY, path: folder, recursive: true }).catch(() => {});
 
         // 第一次下载时解析播放列表并写入本地 index.m3u8 与文件清单
-        let manifest = null;
+        let manifest;
         try {
             manifest = JSON.parse((await Filesystem.readFile({ directory: DIRECTORY, path: `${folder}/manifest.json`, encoding: 'utf8' })).data);
         } catch {

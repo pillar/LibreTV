@@ -41,7 +41,6 @@ let isShowingToast = false;
 function showToast(message, type = 'error') {
     // 首先确保toast元素存在
     let toast = document.getElementById('toast');
-    let toastMessage = document.getElementById('toastMessage');
 
     // 如果toast元素不存在，创建它
     if (!toast) {
@@ -49,7 +48,7 @@ function showToast(message, type = 'error') {
         toast.id = 'toast';
         toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 z-50 opacity-0';
         toast.style = 'z-index: 2147483647'
-        toastMessage = document.createElement('p');
+        const toastMessage = document.createElement('p');
         toastMessage.id = 'toastMessage';
         toast.appendChild(toastMessage);
 

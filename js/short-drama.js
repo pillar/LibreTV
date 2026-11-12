@@ -53,7 +53,7 @@ function classifyShortDramaClasses(classes) {
 /** 各资源站的短剧分类（本机缓存一天，分类编号很少变化） */
 async function shortDramaClassesOf(apiId) {
     const api = API_SITES[apiId].api;
-    let cache = {};
+    let cache;
     try {
         cache = JSON.parse(localStorage.getItem(SHORT_DRAMA_CLASSES_KEY) || '{}') || {};
     } catch {

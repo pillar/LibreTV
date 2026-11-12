@@ -56,7 +56,7 @@ const BASELINE_ATTEMPTS = 3;
 
 rmSync(out, { recursive: true, force: true });
 run('git', ['worktree', 'add', '--detach', base, ref]);
-let failed = false;
+let failed;
 try {
     symlinkSync(join(root, 'node_modules'), join(base, 'node_modules'));
     run('node', ['scripts/build.mjs'], { cwd: base });

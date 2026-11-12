@@ -33,7 +33,7 @@ document.addEventListener('click', event => {
         return;
     }
     if (target.tagName === 'A') event.preventDefault();
-    let args = [];
+    let args;
     try {
         args = target.dataset.args ? JSON.parse(target.dataset.args) : [];
     } catch (error) {
